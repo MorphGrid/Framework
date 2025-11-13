@@ -1,6 +1,9 @@
-name: Build Framework Container
+name: Build Container
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 env:
   REGISTRY_IMAGE: ghcr.io/morphgrid/framework
@@ -32,7 +35,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
-            type=raw,value=${{ matrix.version }}-${{ matrix.variant }}-${{ matrix.type }}
+            type=raw,value=${{ github.ref_name }}-boost-${{ matrix.version }}-${{ matrix.variant }}-${{ matrix.type }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -127,7 +130,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          TAG="${{ matrix.version }}-${{ matrix.variant }}-${{ matrix.type }}"
+          TAG="${{ github.ref_name }}-boost-${{ matrix.version }}-${{ matrix.variant }}-${{ matrix.type }}"
           echo "Creating manifest for tag: ${TAG}"
 
           shopt -s nullglob
