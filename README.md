@@ -1,8 +1,9 @@
-# Queue
+# Framework
 
 <p align="center">
-<a href="https://github.com/morphgrid/framework/actions/workflows/build-server.yml"><img src="https://github.com/morphgrid/framework/actions/workflows/build-server.yml/badge.svg" alt="Build"></a>
-<a href="https://github.com/morphgrid/framework/actions/workflows/build-server-container.yml"><img src="https://github.com/morphgrid/framework/actions/workflows/build-server-container.yml/badge.svg" alt="Build"></a>
+<a href="https://github.com/morphgrid/framework/actions/workflows/build-backend.yml"><img src="https://github.com/morphgrid/framework/actions/workflows/build-backend.yml/badge.svg" alt="Build"></a>
+<a href="https://github.com/morphgrid/framework/actions/workflows/build-framework.yml"><img src="https://github.com/morphgrid/framework/actions/workflows/build-framework.yml/badge.svg" alt="Build"></a>
+<a href="https://github.com/morphgrid/framework/actions/workflows/build-framework-container.yml"><img src="https://github.com/morphgrid/framework/actions/workflows/build-framework-container.yml/badge.svg" alt="Build"></a>
 <a href="https://github.com/morphgrid/framework/actions/workflows/build-frontend.yml"><img src="https://github.com/morphgrid/framework/actions/workflows/build-frontend.yml/badge.svg" alt="Build"></a>
 <a href="https://codecov.io/gh/MorphGrid/Framework"><img src="https://codecov.io/gh/MorphGrid/Framework/graph/badge.svg?token=01GM104OS5" alt="Coverage"></a>
 </p>
