@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 find . \( -iname '*.cpp' -o -iname '*.cc' -o -iname '*.cxx' \
          -o -iname '*.hpp' -o -iname '*.h' -o -iname '*.ipp' \) \

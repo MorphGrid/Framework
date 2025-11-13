@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+
 BUILD_TYPE=${1:-debug}
 LINK_TYPE=${2:-static}
 
