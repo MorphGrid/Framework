@@ -23,10 +23,10 @@ jobs:
         image: mysql:8.4
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: false
-          MYSQL_ROOT_PASSWORD: engine_password
+          MYSQL_ROOT_PASSWORD: framework_password
           MYSQL_USER: user
-          MYSQL_PASSWORD: engine_password
-          MYSQL_DATABASE: engine
+          MYSQL_PASSWORD: framework_password
+          MYSQL_DATABASE: framework
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -54,8 +54,8 @@ jobs:
         env:
           DB_HOST: mysql
           DB_USER: user
-          DB_PASSWORD: engine_password
-          DB_NAME: engine
+          DB_PASSWORD: framework_password
+          DB_NAME: framework
           DB_PORT: 3306
         run: |
           sh scripts/build-and-test.sh ${{ matrix.type }} ${{ matrix.link }}
