@@ -1,0 +1,91 @@
+name: Build Backend
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: false
+          MYSQL_ROOT_PASSWORD: framework_password
+          MYSQL_USER: user
+          MYSQL_PASSWORD: framework_password
+          MYSQL_DATABASE: framework
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache node dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/node_modules
+          key: yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-
+
+      - name: Set node.js 22.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+
+      - name: Run yarn install
+        uses: borales/actions-yarn@v5
+        with:
+          dir: backend
+          cmd: install
+
+      - name: Run yarn build
+        uses: borales/actions-yarn@v5
+        with:
+          dir: backend
+          cmd: build
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-
+
+      - name: Copy .env
+        run: |
+          cd backend
+          php -r "file_exists('.env') || copy('.env.ci', '.env');"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, mysql
+          coverage: pcov
+
+      - name: Run composer install
+        run: |
+          cd backend
+          composer install -n --prefer-dist
+
+      - name: Prepare Laravel Application
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+        run: |
+          cd backend
+          cp .env.ci .env
+          php artisan key:generate
+          php artisan migrate
+
+      - name: Run tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+        run: |
+          cd backend
+          php artisan test --coverage

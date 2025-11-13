@@ -1,0 +1,67 @@
+name: Build Framework
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_WRAPPER_OUT_DIR: /srv/build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [1.87.0, 1.88.0, 1.89.0]
+        type: [debug, release]
+        link: [shared, static]
+
+    container:
+      image: ghcr.io/morphgrid/compiler:${{ matrix.version }}-${{ matrix.type }}-${{ matrix.link }}
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: false
+          MYSQL_ROOT_PASSWORD: engine_password
+          MYSQL_USER: user
+          MYSQL_PASSWORD: engine_password
+          MYSQL_DATABASE: engine
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepares databases
+        env:
+          DB_HOST: mysql
+          DB_PORT: 3306
+        run: |
+          cd backend
+          composer install
+          cp .env.ci .env
+          php artisan migrate
+
+      - name: Check format
+        run: |
+          bash scripts/check-format.sh
+
+      - name: Run build and test
+        env:
+          DB_HOST: mysql
+          DB_USER: user
+          DB_PASSWORD: engine_password
+          DB_NAME: engine
+          DB_PORT: 3306
+        run: |
+          sh scripts/build-and-test.sh ${{ matrix.type }} ${{ matrix.link }}
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
+        if: ${{ matrix.type == 'debug' && matrix.version == '1.89.0' && matrix.link == 'shared' }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
