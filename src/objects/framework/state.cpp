@@ -27,9 +27,9 @@ state::state() : router_(std::make_shared<router>()), ioc_(std::thread::hardware
   boost::mysql::pool_params _params;
   _params.server_address.emplace_host_and_port(dotenv::getenv("DB_HOST", "127.0.0.1"),
                                                static_cast<unsigned short>(std::stoi(dotenv::getenv("DB_PORT", "3306"))));
-  _params.username = dotenv::getenv("DB_USER", "root");
-  _params.password = dotenv::getenv("DB_PASSWORD", "secret_password");
-  _params.database = dotenv::getenv("DB_NAME", "engine");
+  _params.username = dotenv::getenv("DB_USER", "user");
+  _params.password = dotenv::getenv("DB_PASSWORD", "framework_password");
+  _params.database = dotenv::getenv("DB_NAME", "framework");
   _params.thread_safe = true;
   _params.initial_size = std::stoi(dotenv::getenv("DB_POOL_INITIAL_SIZE", "1"));
   _params.max_size = std::stoi(dotenv::getenv("DB_POOL_MAX_SIZE", "32"));

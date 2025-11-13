@@ -45,6 +45,7 @@ jobs:
           composer install
           cp .env.ci .env
           php artisan migrate
+          php artisan db:seed
 
       - name: Check format
         run: |
