@@ -33,7 +33,7 @@ shared_controller index_controller::make() {
         array _queues;
         _queues.reserve(state->queues().size());
 
-        for (auto &[_name, _queue] : state->queues()) {
+        for (auto const &[_name, _queue] : state->queues()) {
           _queues.push_back(object({{"id", to_string(_queue->get_id())}, {"name", _name}}));
         }
 

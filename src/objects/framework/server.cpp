@@ -73,7 +73,7 @@ void server::start(const unsigned short int port) {
              }
            }));
 
-  co_spawn(make_strand(state_->ioc()), signal_handler(state_->ioc(), *task_group_), boost::asio::detached);
+  co_spawn(make_strand(state_->ioc()), signal_handler(*task_group_), boost::asio::detached);
 
   state_->get_connection_pool()->async_run(boost::asio::detached);
 
