@@ -17,9 +17,8 @@
 #ifndef FRAMEWORK_SERVER_HPP
 #define FRAMEWORK_SERVER_HPP
 
-#include <framework/support.hpp>
-
 #include <framework/state.hpp>
+#include <framework/support.hpp>
 
 namespace framework {
 class server : public std::enable_shared_from_this<server> {
