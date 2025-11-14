@@ -40,7 +40,7 @@ shared_controller tasks_controller::make() {
         array _tasks;
         _tasks.reserve(_queue->number_of_tasks());
 
-        for (auto &[_name, _task] : _queue->get_tasks()) {
+        for (auto const &[_name, _task] : _queue->get_tasks()) {
           _tasks.push_back(object({{"id", to_string(_task->get_id())}, {"name", _name}}));
         }
 

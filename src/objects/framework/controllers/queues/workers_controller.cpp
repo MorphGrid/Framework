@@ -40,7 +40,7 @@ shared_controller workers_controller::make() {
         array _workers;
         _workers.reserve(_queue->number_of_workers());
 
-        for (auto &[_name, _worker] : _queue->get_workers()) {
+        for (auto const &[_name, _worker] : _queue->get_workers()) {
           _workers.push_back(object({{"id", to_string(_worker->id())}, {"number_of_tasks", _worker->number_of_tasks()}}));
         }
 

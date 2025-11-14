@@ -25,11 +25,11 @@ uuid queue::get_id() const noexcept { return id_; }
 
 std::size_t queue::number_of_workers() const { return workers_.size(); }
 
-map_of<uuid, shared_worker> queue::get_workers() { return workers_; }
+map_of<uuid, shared_worker> queue::get_workers() const { return workers_; }
 
-map_of<uuid, shared_job> queue::get_jobs() { return jobs_; }
+map_of<uuid, shared_job> queue::get_jobs() const { return jobs_; }
 
-map_hash_of<std::string, shared_task, std::less<>> queue::get_tasks() { return tasks_; }
+map_hash_of<std::string, shared_task, std::less<>> queue::get_tasks() const { return tasks_; }
 
 std::size_t queue::number_of_jobs() const { return jobs_.size(); }
 
