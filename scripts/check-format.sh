@@ -18,6 +18,6 @@ find . \( -iname '*.cpp' -o -iname '*.cc' -o -iname '*.cxx' \
   fi
 }
 
-if [[ -f main.cpp ]] && ! clang-format --dry-run --Werror main.cpp;; then
+if [[ -f main.cpp ]] && ! clang-format --dry-run --Werror main.cpp; then
   exit 1
 fi
