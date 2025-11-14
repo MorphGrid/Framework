@@ -17,18 +17,17 @@
 #ifndef FRAMEWORK_STATE_HPP
 #define FRAMEWORK_STATE_HPP
 
-#include <framework/support.hpp>
-
 #include <framework/encoding.hpp>
-#include <framework/router.hpp>
 #include <framework/metrics.hpp>
+#include <framework/router.hpp>
+#include <framework/support.hpp>
 
 namespace framework {
 class state : public std::enable_shared_from_this<state> {
   shared_router router_ = std::make_shared<router>();
   map_hash_of<std::string, shared_queue, std::less<>> queues_;
   std::mutex queues_mutex_;
-  boost::asio::io_context ioc_ { static_cast<int>(std::thread::hardware_concurrency()) };
+  boost::asio::io_context ioc_{static_cast<int>(std::thread::hardware_concurrency())};
   shared_of<boost::mysql::connection_pool> connection_pool_;
   shared_of<metrics> metrics_ = std::make_shared<metrics>();
 

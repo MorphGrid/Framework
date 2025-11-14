@@ -104,7 +104,7 @@ void validator::on_number_rule(const value &value, const std::string &attribute)
 
 void validator::on_object_rule(const value &value, const std::string &attribute) {
   if (!value.as_object().at(attribute).is_object()) {
-    this->insert_or_push(attribute,  std::format("Attribute {} must be an object.", attribute));
+    this->insert_or_push(attribute, std::format("Attribute {} must be an object.", attribute));
   }
 }
 
