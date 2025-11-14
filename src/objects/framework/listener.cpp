@@ -20,7 +20,7 @@
 #include <framework/task_group.hpp>
 
 namespace framework {
-async_of<void> listener(task_group &task_group, const shared_state state, endpoint endpoint) {
+async_of<void> listener(task_group &task_group, const shared_state state, endpoint endpoint) noexcept {
   auto _cancellation_state = co_await boost::asio::this_coro::cancellation_state;
   const auto _executor = co_await boost::asio::this_coro::executor;
   auto _acceptor = acceptor{_executor, endpoint};

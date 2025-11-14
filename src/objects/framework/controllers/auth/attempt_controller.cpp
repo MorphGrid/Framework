@@ -40,7 +40,7 @@ shared_controller attempt_controller::make() {
 
         co_await _connection->async_execute(boost::mysql::with_params("SELECT id, password FROM users WHERE email = {}", _email), _result);
 
-        if (_result.rows().size() == 0) {
+        if (_result.rows().empty()) {
           response_type _response{http_status::unprocessable_entity, request.version()};
           _response.body() = serialize(
               object({{"message", "The given data was invalid."}, {"errors", {{"email", array{"The email isn't registered."}}}}}));

@@ -61,12 +61,14 @@ void server::start(const unsigned short int port) {
   });
 
   co_spawn(make_strand(state_->ioc()), listener(*task_group_, state_, endpoint{_address, port}),
-           task_group_->adapt([](const std::exception_ptr& throwable) {
+           task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
              if (throwable) {
                try {
                  std::rethrow_exception(throwable);
-               } catch (std::exception& exception) {
+               } catch (std::system_error& exception) {
                  std::cerr << "Error in listener: " << exception.what() << "\n";
+               } catch (...) {
+                 std::cerr << "Error in listener: \n";
                }
              }
            }));

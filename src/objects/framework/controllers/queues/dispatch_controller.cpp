@@ -46,6 +46,7 @@ shared_controller dispatch_controller::make() {
           _response.prepare_payload();
           co_return _response;
         } catch (const errors::task_not_found &e) {
+          boost::ignore_unused(e);
           response_empty_type _response{http_status::not_found, request.version()};
           _response.prepare_payload();
           co_return _response;
