@@ -27,7 +27,7 @@ vector_of<http_verb> workers_controller::verbs() {
 
 shared_controller workers_controller::make() {
   return std::make_shared<controller>(
-      [](const shared_state &state, const request_type &request, const params_type &params,
+      [](const shared_state &state, const request_type request, const params_type &params,
          const shared_auth &auth) -> async_of<response_type> {
         const auto _queue_name = params.at("queue_name");
         if (!state->queue_exists(_queue_name)) {

@@ -27,7 +27,7 @@ vector_of<http_verb> attempt_controller::verbs() {
 
 shared_controller attempt_controller::make() {
   return std::make_shared<controller>(
-      [](const shared_state &state, const request_type &request, const params_type &params,
+      [](const shared_state &state, const request_type request, const params_type &params,
          const shared_auth &auth) -> async_of<response_type> {
         auto _body = boost::json::parse(request.body());
         std::string _email{_body.as_object().at("email").as_string()};

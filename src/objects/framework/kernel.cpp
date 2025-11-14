@@ -25,7 +25,7 @@
 #include <framework/validator.hpp>
 
 namespace framework {
-async_of<message> kernel(const shared_state &state, const request_type &request) {
+async_of<message> kernel(const shared_state &state, const request_type request) {
   using enum http_field;
 
   if (request.method() == http_verb::options) {
@@ -81,7 +81,7 @@ async_of<message> kernel(const shared_state &state, const request_type &request)
         co_return _response;
       }
     }
-    auto _response = co_await _controller->callback()(state, request, _params, _auth);
+    auto _response = co_await _controller->callback()(state, std::move(request), _params, _auth);
     _response.set(access_control_allow_origin, "*");
     co_return _response;
   } catch (const errors::not_found_error &) {

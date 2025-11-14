@@ -14,5 +14,8 @@ ENABLE_STATIC="OFF"
 fi
 cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTS=OFF  -DENABLE_CI=ON -DENABLE_STATIC_LINKING=$ENABLE_STATIC
 
-make -j4
+make -j16
 make install
+
+cd ../..
+rm repo -Rf

@@ -43,7 +43,7 @@ class test_server : public testing::Test {
             http_verb::get,
         },
         "/system_error",
-        std::make_shared<controller>([](const shared_state &state, const request_type &request, const params_type &params,
+        std::make_shared<controller>([](const shared_state &state, const request_type request, const params_type &params,
                                         const shared_auth &auth) -> async_of<response_type> {
           response_empty_type _response{http_status::ok, request.version()};
           _response.prepare_payload();

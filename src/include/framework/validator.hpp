@@ -23,8 +23,8 @@ class validator final : public std::enable_shared_from_this<validator> {
 
  public:
   void insert_or_push(const std::string& key, const std::string& message);
-  object get_errors();
-  bool get_success();
+  object get_errors() const;
+  bool get_success() const;
   validator() = default;
 
   static shared_validator make(const map_of<std::string, std::string>& rules, const value& value) {

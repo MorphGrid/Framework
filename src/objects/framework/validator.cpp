@@ -18,8 +18,7 @@ namespace framework {
 bool validator::per_rule(const value &value, const std::string &attribute, const std::string &rule) {
   if (attribute == "*") {
     if (!value.is_object()) {
-      const std::string _error_message = "Message must be an JSON object.";
-      this->insert_or_push(attribute, _error_message);
+      this->insert_or_push(attribute, "Message must be an JSON object.");
       return true;
     }
     return false;
@@ -38,8 +37,7 @@ bool validator::per_rule(const value &value, const std::string &attribute, const
 
 bool validator::per_scope_rule(const value &value, const std::string &attribute, const std::string_view &rule) {
   if (!value.as_object().contains(attribute) && rule != "nullable") {
-    const std::string _error_message = "Attribute " + attribute + " is required.";
-    this->insert_or_push(attribute, _error_message);
+    this->insert_or_push(attribute, std::format("Attribute {} is required.", attribute));
     return true;
   }
 
@@ -62,18 +60,15 @@ bool validator::per_scope_rule(const value &value, const std::string &attribute,
 
 void validator::on_confirmation_rule(const value &value, const std::string &attribute) {
   if (!value.as_object().contains(attribute + "_confirmation")) {
-    const std::string _error_message = "Attribute " + attribute + "_confirmation" + " must be present.";
-    this->insert_or_push(attribute, _error_message);
+    this->insert_or_push(attribute, std::format("Attribute {}_confirmation must be present.", attribute));
   } else {
     if (!value.as_object().at(attribute + "_confirmation").is_string()) {
-      const std::string _error_message = "Attribute " + attribute + "_confirmation" + " must be string.";
-      this->insert_or_push(attribute, _error_message);
+      this->insert_or_push(attribute, std::format("Attribute {}_confirmation must be string.", attribute));
     } else {
       const std::string value_{value.as_object().at(attribute).as_string()};
       const std::string value_confirmation_{value.as_object().at(attribute + "_confirmation").as_string()};
       if (value_ != value_confirmation_) {
-        const std::string _error_message = "Attribute " + attribute + " and " + attribute + "_confirmation" + " must be equals.";
-        this->insert_or_push(attribute, _error_message);
+        this->insert_or_push(attribute, std::format("Attribute {} and {}_confirmation must be equals.", attribute, attribute));
       }
     }
   }
@@ -81,8 +76,7 @@ void validator::on_confirmation_rule(const value &value, const std::string &attr
 
 void validator::on_array_of_strings_rule(const value &value, const std::string &attribute) {
   if (!value.as_object().at(attribute).is_array()) {
-    const std::string _error_message = "Attribute " + attribute + " must be an array.";
-    this->insert_or_push(attribute, _error_message);
+    this->insert_or_push(attribute, std::format("Attribute {} must be an array.", attribute));
   } else {
     this->on_array_of_strings_per_element_rule(value, attribute);
   }
@@ -90,14 +84,12 @@ void validator::on_array_of_strings_rule(const value &value, const std::string &
 
 void validator::on_array_of_strings_per_element_rule(const value &value, const std::string &attribute) {
   if (auto _elements = value.as_object().at(attribute).as_array(); _elements.empty()) {
-    const std::string _error_message = "Attribute " + attribute + " cannot be empty.";
-    this->insert_or_push(attribute, _error_message);
+    this->insert_or_push(attribute, std::format("Attribute {} cannot be empty.", attribute));
   } else {
     size_t _i = 0;
     for (const auto &_element : _elements) {
       if (!_element.is_string()) {
-        const std::string _error_message = "Attribute " + attribute + " at position " + std::to_string(_i) + " must be string.";
-        this->insert_or_push(attribute, _error_message);
+        this->insert_or_push(attribute, std::format("Attribute {} at position {} must be string.", attribute, std::to_string(_i)));
       }
       _i++;
     }
@@ -106,36 +98,31 @@ void validator::on_array_of_strings_per_element_rule(const value &value, const s
 
 void validator::on_number_rule(const value &value, const std::string &attribute) {
   if (!value.as_object().at(attribute).is_int64()) {
-    const std::string _error_message = "Attribute " + attribute + " must be a number.";
-    this->insert_or_push(attribute, _error_message);
+    this->insert_or_push(attribute, std::format("Attribute {} must be a number.", attribute));
   }
 }
 
 void validator::on_object_rule(const value &value, const std::string &attribute) {
   if (!value.as_object().at(attribute).is_object()) {
-    const std::string _error_message = "Attribute " + attribute + " must be an object.";
-    this->insert_or_push(attribute, _error_message);
+    this->insert_or_push(attribute, std::format("Attribute {} must be an object.", attribute));
   }
 }
 
 void validator::on_uuid_rule(const value &value, const std::string &attribute) {
   if (!value.as_object().at(attribute).is_string()) {
-    const std::string _error_message = "Attribute " + attribute + " must be string.";
-    this->insert_or_push(attribute, _error_message);
+    this->insert_or_push(attribute, std::format("Attribute {} must be string.", attribute));
   } else {
     try {
       boost::lexical_cast<boost::uuids::uuid>(value.as_object().at(attribute).as_string().data());
     } catch (boost::bad_lexical_cast & /* exception */) {
-      const std::string _error_message = "Attribute " + attribute + " must be uuid.";
-      this->insert_or_push(attribute, _error_message);
+      this->insert_or_push(attribute, std::format("Attribute {} must be uuid.", attribute));
     }
   }
 }
 
 void validator::on_string_rule(const value &value, const std::string &attribute) {
   if (!value.as_object().at(attribute).is_string()) {
-    const std::string _error_message = "Attribute " + attribute + " must be string.";
-    this->insert_or_push(attribute, _error_message);
+    this->insert_or_push(attribute, std::format("Attribute {} must be string.", attribute));
   }
 }
 
@@ -145,7 +132,7 @@ void validator::insert_or_push(const std::string &key, const std::string &messag
   this->errors_.at(key).as_array().emplace_back(message);
 }
 
-object validator::get_errors() { return errors_; }
+object validator::get_errors() const { return errors_; }
 
-bool validator::get_success() { return success_; }
+bool validator::get_success() const { return success_; }
 }  // namespace framework
