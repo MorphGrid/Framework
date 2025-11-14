@@ -28,7 +28,7 @@ async_of<void> session(const shared_state &state, tcp_stream stream) {
     if (_read_ec == boost::beast::http::error::end_of_stream) {
       co_return;
     }
-    message _message = co_await kernel(state, _request);
+    message _message = co_await kernel(state, std::move(_request));
 
     const bool keep_alive = _message.keep_alive();
     co_await async_write(stream, std::move(_message));
