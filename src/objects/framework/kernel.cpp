@@ -25,7 +25,18 @@
 #include <framework/validator.hpp>
 
 namespace framework {
-async_of<message> kernel(const shared_state state, const request_type request) {
+bool authenticated(const shared_state &state, const request_type &request, const shared_auth &auth) {
+  using enum http_field;
+  try {
+    const std::string _bearer{request[authorization]};
+    auth->set_jwt(jwt::from(_bearer, state->get_key()));
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+async_of<message> kernel(const shared_state state, request_type request) {
   using enum http_field;
 
   if (request.method() == http_verb::options) {
@@ -71,10 +82,7 @@ async_of<message> kernel(const shared_state state, const request_type request) {
         _response.prepare_payload();
         co_return _response;
       }
-      try {
-        std::string _bearer{request[authorization]};
-        _auth->set_jwt(jwt::from(_bearer, state->get_key()));
-      } catch (...) {
+      if (!authenticated(state, request, _auth)) {
         response_empty_type _response{http_status::unauthorized, request.version()};
         _response.set(access_control_allow_origin, "*");
         _response.prepare_payload();

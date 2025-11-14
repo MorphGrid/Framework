@@ -41,7 +41,7 @@ shared_controller jobs_controller::make() {
         array _jobs;
         _jobs.reserve(_queue->number_of_jobs());
 
-        for (auto &[_id, _job] : _queue->get_jobs()) {
+        for (auto const &[_id, _job] : _queue->get_jobs()) {
           _jobs.push_back(object({
               {"id", to_string(_id)},
               {"task_id", to_string(_job->get_task()->get_id())},
