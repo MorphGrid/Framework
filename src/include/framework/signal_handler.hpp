@@ -5,7 +5,7 @@
 #include <framework/task_group.hpp>
 
 namespace framework {
-async_of<void> signal_handler(boost::asio::io_context &ioc, task_group &task_group) {
+inline async_of<void> signal_handler(task_group &task_group) {
   const auto _executor = co_await boost::asio::this_coro::executor;
   auto _signal_set = boost::asio::signal_set{_executor, SIGINT, SIGTERM};
 

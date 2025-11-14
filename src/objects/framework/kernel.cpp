@@ -17,6 +17,8 @@
 #include <framework/auth.hpp>
 #include <framework/controller.hpp>
 #include <framework/errors/not_found_error.hpp>
+#include <framework/errors/parse_error.hpp>
+#include <framework/errors/signature_error.hpp>
 #include <framework/jwt.hpp>
 #include <framework/kernel.hpp>
 #include <framework/route.hpp>
@@ -31,7 +33,11 @@ bool authenticated(const shared_state &state, const request_type &request, const
     const std::string _bearer{request[authorization]};
     auth->set_jwt(jwt::from(_bearer, state->get_key()));
     return true;
-  } catch (...) {
+  } catch (const errors::parse_error &e) {
+    boost::ignore_unused(e);
+    return false;
+  } catch (const errors::signature_error &e) {
+    boost::ignore_unused(e);
     return false;
   }
 }
