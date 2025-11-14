@@ -19,9 +19,11 @@
 
 #include <framework/support.hpp>
 
+#include <framework/state.hpp>
+
 namespace framework {
 class server : public std::enable_shared_from_this<server> {
-  shared_state state_;
+  shared_state state_ = std::make_shared<state>();
   shared_of<task_group> task_group_;
 
  public:

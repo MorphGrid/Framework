@@ -141,7 +141,7 @@ using value = boost::json::value;
 using array = boost::json::array;
 
 using controller_callback_type =
-    std::function<async_of<response_type>(const shared_state &, request_type, const params_type &, const shared_auth &)>;
+    std::function<async_of<response_type>(shared_state, request_type, params_type, shared_auth)>;
 
 using handler_signature_type = async_of<void>(atomic_of<bool> &, object const &);
 

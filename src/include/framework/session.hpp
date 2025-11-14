@@ -20,7 +20,7 @@
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> session(const shared_state& state, tcp_stream stream);
+async_of<void> session(shared_state state, tcp_stream stream);
 }  // namespace framework
 
 #endif  // FRAMEWORK_SESSION_HPP
