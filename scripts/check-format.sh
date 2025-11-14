@@ -13,13 +13,11 @@ find . \( -iname '*.cpp' -o -iname '*.cc' -o -iname '*.cxx' \
     fi
   done
 
-  if [ "$failed" -ne 0 ]; then
+  if [[ "$failed" -ne 0 ]]; then
     exit 1
   fi
 }
 
-if [ -f main.cpp ]; then
-  if ! clang-format --dry-run --Werror main.cpp; then
-    exit 1
-  fi
+if [[ -f main.cpp ]] && ! clang-format --dry-run --Werror main.cpp;; then
+  exit 1
 fi

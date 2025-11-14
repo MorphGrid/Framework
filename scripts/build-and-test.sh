@@ -7,7 +7,7 @@ LINK_TYPE=${2:-static}
 mkdir -p build
 cd build
 
-if [ "$LINK_TYPE" == "static" ]; then
+if [[ "$LINK_TYPE" == "static" ]]; then
 ENABLE_STATIC="ON"
 else
 ENABLE_STATIC="OFF"
