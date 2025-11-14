@@ -32,7 +32,6 @@ class task_group {
       ~remover() {
         if (task_group_) {
           auto _lock = std::lock_guard{task_group_->mutex_};
-          boost::system::error_code _ec;
           if (task_group_->signals_.erase(signal_) == task_group_->signals_.end()) {
             try {
               task_group_->timer_.cancel();
