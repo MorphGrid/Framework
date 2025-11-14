@@ -41,17 +41,18 @@ async_of<void> listener(task_group &task_group, const shared_state state, endpoi
 
     if (_ec) throw boost::system::system_error{_ec};
 
-    co_spawn(_socket_executor, session(state, tcp_stream{std::move(_socket)}), task_group.adapt([](const std::exception_ptr &throwable) {
-      if (throwable) {
-        try {
-          std::rethrow_exception(throwable);
-        } catch (const system_error &exception) {
-          std::cerr << "[Listener] Boost error: " << exception.what() << std::endl;
-        } catch (...) {
-          std::cerr << "[Listener] Unknown exception thrown." << std::endl;
-        }
-      }
-    }));
+    co_spawn(_socket_executor, session(state, tcp_stream{std::move(_socket)}),
+             task_group.adapt([](const std::exception_ptr &throwable) noexcept {
+               if (throwable) {
+                 try {
+                   std::rethrow_exception(throwable);
+                 } catch (const system_error &exception) {
+                   std::cerr << "[Listener] Boost error: " << exception.what() << std::endl;
+                 } catch (...) {
+                   std::cerr << "[Listener] Unknown exception thrown." << std::endl;
+                 }
+               }
+             }));
   }
 
   co_return;

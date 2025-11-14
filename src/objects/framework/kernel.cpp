@@ -36,7 +36,7 @@ bool authenticated(const shared_state &state, const request_type &request, const
   }
 }
 
-async_of<message> kernel(const shared_state state, request_type request) {
+async_of<message> kernel(const shared_state state, request_type request) noexcept {
   using enum http_field;
 
   if (request.method() == http_verb::options) {

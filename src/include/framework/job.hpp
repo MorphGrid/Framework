@@ -49,7 +49,7 @@ class job : public std::enable_shared_from_this<job> {
   std::exception_ptr exception() const noexcept;
   time_point started_at() const noexcept;
   time_point finished_at() const noexcept;
-  async_of<void> run();
+  async_of<void> run() noexcept;
   void cancel() noexcept;
 };
 }  // namespace framework

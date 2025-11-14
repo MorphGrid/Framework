@@ -63,7 +63,7 @@ time_point job::started_at() const noexcept { return started_at_; }
 
 time_point job::finished_at() const noexcept { return finished_at_; }
 
-async_of<void> job::run() {
+async_of<void> job::run() noexcept {
   mark_as_started();
   try {
     throw_if_cancelled();
