@@ -26,8 +26,8 @@ vector_of<http_verb> user_controller::verbs() {
 
 shared_controller user_controller::make() {
   return std::make_shared<controller>(
-      [](const shared_state &state, const request_type request, const params_type &params,
-         const shared_auth &auth) -> async_of<response_type> {
+      [](const shared_state state, const request_type request, const params_type params,
+         const shared_auth auth) -> async_of<response_type> {
         response_type _response{http_status::ok, request.version()};
         const object _data = {{"data", {{"id", to_string(auth->get_jwt().value()->get_sub())}}}};
         _response.body() = serialize(_data);

@@ -16,7 +16,7 @@
 #include <framework/session.hpp>
 
 namespace framework {
-async_of<void> session(const shared_state &state, tcp_stream stream) {
+async_of<void> session(const shared_state state, tcp_stream stream) {
   flat_buffer _buffer;
   auto _cancellation_state = co_await boost::asio::this_coro::cancellation_state;
 

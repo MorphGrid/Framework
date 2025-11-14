@@ -20,7 +20,7 @@
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> listener(task_group& task_group, const shared_state& state, endpoint endpoint);
+async_of<void> listener(task_group& task_group, shared_state state, endpoint endpoint);
 }  // namespace framework
 
 #endif  // FRAMEWORK_LISTENER_HPP

@@ -31,7 +31,7 @@
 #include <framework/task_group.hpp>
 
 namespace framework {
-server::server() : state_(std::make_shared<state>()), task_group_(std::make_shared<task_group>(state_->ioc().get_executor())) {}
+server::server() : task_group_(std::make_shared<task_group>(state_->ioc().get_executor())) {}
 
 void server::start(const unsigned short int port) {
   auto const _address = boost::asio::ip::make_address("0.0.0.0");
