@@ -21,9 +21,7 @@
 #include <framework/state.hpp>
 
 namespace framework {
-state::state() : router_(std::make_shared<router>()), ioc_(std::thread::hardware_concurrency()) {
-  metrics_ = std::make_shared<metrics>();
-  key_ = base64url_decode(dotenv::getenv("APP_KEY", "-66WcolkZd8-oHejFFj1EUhxg3-8UWErNkgMqCwLDEI"));
+state::state() {
   boost::mysql::pool_params _params;
   _params.server_address.emplace_host_and_port(dotenv::getenv("DB_HOST", "127.0.0.1"),
                                                static_cast<unsigned short>(std::stoi(dotenv::getenv("DB_PORT", "3306"))));

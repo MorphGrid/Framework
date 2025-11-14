@@ -2,8 +2,4 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/frameworkTargets.cmake")
 
-find_dependency(Boost REQUIRED COMPONENTS program_options json charconv)
-find_dependency(OpenSSL REQUIRED)
-find_dependency(laserpants_dotenv REQUIRED)
-
 set(FRAMEWORK_VERSION "@PACKAGE_VERSION@")

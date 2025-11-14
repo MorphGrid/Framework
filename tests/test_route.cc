@@ -24,7 +24,7 @@
 using namespace framework;
 
 TEST(test_route, can_be_instanced) {
-  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type &request, const params_type &params,
+  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type request, const params_type &params,
                                                      const shared_auth &auth) -> async_of<response_type> {
     response_empty_type _response{http_status::ok, request.version()};
     _response.prepare_payload();
@@ -37,7 +37,7 @@ TEST(test_route, can_be_instanced) {
           http_verb::post,
       },
       "/hello-world",
-      std::make_shared<controller>([](const shared_state &state, const request_type &request, const params_type &params,
+      std::make_shared<controller>([](const shared_state &state, const request_type request, const params_type &params,
                                       const shared_auth &auth) -> async_of<response_type> {
         response_empty_type _response{http_status::ok, request.version()};
         _response.prepare_payload();
@@ -49,7 +49,7 @@ TEST(test_route, can_be_instanced) {
 }
 
 TEST(test_route, can_be_compiled) {
-  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type &request, const params_type &params,
+  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type request, const params_type &params,
                                                      const shared_auth &auth) -> async_of<response_type> {
     response_empty_type _response{http_status::ok, request.version()};
     _response.prepare_payload();
@@ -62,7 +62,7 @@ TEST(test_route, can_be_compiled) {
           http_verb::post,
       },
       "/api/users/{user_id}/configurations",
-      std::make_shared<controller>([](const shared_state &state, const request_type &request, const params_type &params,
+      std::make_shared<controller>([](const shared_state &state, const request_type request, const params_type &params,
                                       const shared_auth &auth) -> async_of<response_type> {
         response_empty_type _response{http_status::ok, request.version()};
         _response.prepare_payload();
@@ -76,7 +76,7 @@ TEST(test_route, can_be_compiled) {
 TEST(test_route, can_be_invoked) {
   boost::asio::io_context _ioc;
 
-  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type &request, const params_type &params,
+  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type request, const params_type &params,
                                                      const shared_auth &auth) -> async_of<response_type> {
     response_empty_type _response{http_status::ok, request.version()};
     _response.prepare_payload();
@@ -116,7 +116,7 @@ TEST(test_route, can_be_invoked) {
 }
 
 TEST(test_route, can_be_matched) {
-  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type &request, const params_type &params,
+  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type request, const params_type &params,
                                                      const shared_auth &auth) -> async_of<response_type> {
     response_empty_type _response{http_status::ok, request.version()};
     _response.prepare_payload();
@@ -157,7 +157,7 @@ TEST(test_route, can_be_matched) {
 }
 
 TEST(test_route, throw_error_on_duplicated_parameters) {
-  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type &request, const params_type &params,
+  auto _controller = std::make_shared<controller>([](const shared_state &state, const request_type request, const params_type &params,
                                                      const shared_auth &auth) -> async_of<response_type> {
     response_empty_type _response{http_status::ok, request.version()};
     _response.prepare_payload();

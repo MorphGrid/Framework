@@ -10,5 +10,7 @@ ARG LINK
 
 WORKDIR /srv
 
-COPY . .
+COPY . repo
+
+WORKDIR /srv/repo
 RUN sh scripts/build.sh ${BOOST_VARIANT} ${LINK}

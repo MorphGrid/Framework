@@ -62,7 +62,7 @@ TEST(test_encoding_base64, reversibility) {
 }
 
 TEST(test_encoding_base64, binary_data) {
-  const std::string _binary = "\x00\xFF\x10\x80\x7F";
+  const std::string _binary = "\x{00}\x{FF}\x{10}\x{80}\x{7F}";
   const std::string _encoded = base64_encode(_binary);
   const std::string _decoded = base64_decode(_encoded);
   EXPECT_EQ(_decoded, _binary);

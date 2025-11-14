@@ -19,18 +19,22 @@
 
 #include <framework/support.hpp>
 
+#include <framework/encoding.hpp>
+#include <framework/router.hpp>
+#include <framework/metrics.hpp>
+
 namespace framework {
 class state : public std::enable_shared_from_this<state> {
-  shared_router router_;
+  shared_router router_ = std::make_shared<router>();
   map_hash_of<std::string, shared_queue, std::less<>> queues_;
   std::mutex queues_mutex_;
-  boost::asio::io_context ioc_;
+  boost::asio::io_context ioc_ { static_cast<int>(std::thread::hardware_concurrency()) };
   shared_of<boost::mysql::connection_pool> connection_pool_;
-  shared_of<metrics> metrics_;
+  shared_of<metrics> metrics_ = std::make_shared<metrics>();
 
   atomic_of<bool> running_{false};
   atomic_of<unsigned short int> port_{0};
-  std::string key_;
+  std::string key_ = base64url_decode(dotenv::getenv("APP_KEY", "-66WcolkZd8-oHejFFj1EUhxg3-8UWErNkgMqCwLDEI"));
 
  public:
   state();
