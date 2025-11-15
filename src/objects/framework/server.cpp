@@ -20,7 +20,7 @@
 #include <framework/controllers/queues/workers_controller.hpp>
 #include <framework/controllers/status_controller.hpp>
 #include <framework/controllers/user_controller.hpp>
-#include <framework/listener.hpp>
+#include <framework/http_listener.hpp>
 #include <framework/metrics.hpp>
 #include <framework/queue.hpp>
 #include <framework/route.hpp>
@@ -60,7 +60,7 @@ void server::start(const unsigned short int port) {
     co_return;
   });
 
-  co_spawn(make_strand(state_->ioc()), listener(*task_group_, state_, endpoint{_address, port}),
+  co_spawn(make_strand(state_->ioc()), http_listener(*task_group_, state_, endpoint{_address, port}),
            task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
              if (throwable) {
                try {

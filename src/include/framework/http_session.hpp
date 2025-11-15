@@ -14,13 +14,13 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_SESSION_HPP
-#define FRAMEWORK_SESSION_HPP
+#ifndef FRAMEWORK_HTTP_SESSION_HPP
+#define FRAMEWORK_HTTP_SESSION_HPP
 
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> session(shared_state state, tcp_stream stream);
+async_of<void> http_session(shared_state state, tcp_stream stream);
 }  // namespace framework
 
-#endif  // FRAMEWORK_SESSION_HPP
+#endif  // FRAMEWORK_HTTP_SESSION_HPP

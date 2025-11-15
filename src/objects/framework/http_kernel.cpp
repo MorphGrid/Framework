@@ -20,7 +20,7 @@
 #include <framework/errors/parse_error.hpp>
 #include <framework/errors/signature_error.hpp>
 #include <framework/jwt.hpp>
-#include <framework/kernel.hpp>
+#include <framework/http_kernel.hpp>
 #include <framework/route.hpp>
 #include <framework/router.hpp>
 #include <framework/state.hpp>
@@ -42,7 +42,7 @@ bool authenticated(const shared_state &state, const request_type &request, const
   }
 }
 
-async_of<message> kernel(const shared_state state, request_type request) noexcept {
+async_of<message> http_kernel(const shared_state state, request_type request) noexcept {
   using enum http_field;
 
   if (request.method() == http_verb::options) {
