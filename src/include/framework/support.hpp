@@ -75,7 +75,8 @@ using shared_queue = std::shared_ptr<queue>;
 class jwt;
 using shared_jwt = std::shared_ptr<jwt>;
 
-struct tcp_handlers;
+class tcp_handlers;
+using shared_tcp_handlers = std::shared_ptr<tcp_handlers>;
 
 class tcp_connection;
 using shared_tcp_connection = std::shared_ptr<tcp_connection>;

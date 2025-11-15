@@ -51,6 +51,7 @@ class state : public std::enable_shared_from_this<state> {
   void set_port(unsigned short int port);
   void set_running(bool running);
   map_hash_of<std::string, shared_queue, std::less<>>& queues() noexcept;
+  std::unordered_map<uuid, shared_tcp_service, boost::hash<uuid>>& services() noexcept;
   shared_router get_router() const noexcept;
   shared_queue get_queue(const std::string& name) noexcept;
   bool remove_queue(const std::string& name) noexcept;

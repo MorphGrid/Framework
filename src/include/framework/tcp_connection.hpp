@@ -17,27 +17,37 @@
 #ifndef FRAMEWORK_TCP_CONNECTION_HPP
 #define FRAMEWORK_TCP_CONNECTION_HPP
 
+#include <framework/auth.hpp>
 #include <framework/support.hpp>
 
 namespace framework {
 class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
   flat_buffer buffer_;
+  shared_tcp_service service_;
+  shared_auth auth_ = std::make_shared<auth>();
 
  public:
-  tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream);
+  tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_service service);
 
   flat_buffer& get_buffer();
   uuid get_id() const noexcept;
   shared_of<tcp_executor> get_strand() const noexcept;
   shared_of<tcp_stream> get_stream() const noexcept;
+  shared_tcp_service get_service() const noexcept;
+
+  async_of<void> notify_write();
 
   template <typename Buffer>
   void invoke(Buffer&& buf) {
     auto self = shared_from_this();
-    co_spawn(*strand_, [self, buf = std::forward<Buffer>(buf)]() mutable -> async_of<void> {
-      co_await async_write(*self->stream_, boost::asio::buffer(buf));
-      co_return;
-    });
+    co_spawn(
+        *strand_,
+        [self, buf = std::forward<Buffer>(buf)]() mutable -> async_of<void> {
+          co_await async_write(*self->stream_, boost::asio::buffer(buf));
+          co_await self->notify_write();
+          co_return;
+        },
+        boost::asio::detached);
   }
 
  private:

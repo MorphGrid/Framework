@@ -20,12 +20,36 @@
 #include <framework/support.hpp>
 
 namespace framework {
-struct tcp_handlers {
-  std::function<async_of<void>(shared_tcp_service, shared_of<auth>, shared_tcp_connection)> on_connect_;
-  std::function<async_of<void>(shared_tcp_service, shared_of<auth>, shared_tcp_connection)> on_accepted_;
-  std::function<async_of<void>(shared_tcp_service, shared_of<auth>, shared_tcp_connection)> on_read_;
-  std::function<async_of<void>(shared_tcp_service, shared_of<auth>, shared_tcp_connection)> on_write_;
-  std::function<async_of<void>(shared_tcp_service, shared_of<auth>, shared_tcp_connection)> on_disconnected_;
+class tcp_handlers : public std::enable_shared_from_this<tcp_handlers> {
+ public:
+  using handler_type = std::function<async_of<void>(shared_tcp_service, shared_tcp_connection)>;
+
+  explicit tcp_handlers(handler_type on_connect = nullptr, handler_type on_accepted = nullptr, handler_type on_read = nullptr,
+                        handler_type on_write = nullptr, handler_type on_disconnected = nullptr)
+      : on_connect_(std::move(on_connect)),
+        on_accepted_(std::move(on_accepted)),
+        on_read_(std::move(on_read)),
+        on_write_(std::move(on_write)),
+        on_disconnected_(std::move(on_disconnected)) {}
+
+  handler_type on_connect() const { return on_connect_; }
+  handler_type on_accepted() const { return on_accepted_; }
+  handler_type on_read() const { return on_read_; }
+  handler_type on_write() const { return on_write_; }
+  handler_type on_disconnected() const { return on_disconnected_; }
+
+  void set_on_connect(handler_type h) { on_connect_ = std::move(h); }
+  void set_on_accepted(handler_type h) { on_accepted_ = std::move(h); }
+  void set_on_read(handler_type h) { on_read_ = std::move(h); }
+  void set_on_write(handler_type h) { on_write_ = std::move(h); }
+  void set_on_disconnected(handler_type h) { on_disconnected_ = std::move(h); }
+
+ private:
+  handler_type on_connect_;
+  handler_type on_accepted_;
+  handler_type on_read_;
+  handler_type on_write_;
+  handler_type on_disconnected_;
 };
 }  // namespace framework
 

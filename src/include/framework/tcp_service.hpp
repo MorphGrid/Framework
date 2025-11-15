@@ -26,9 +26,11 @@ class tcp_service : std::enable_shared_from_this<tcp_service> {
   unsigned short int port_;
   std::mutex mutex_;
   vector_of<shared_tcp_connection> writers_;
+  shared_tcp_handlers callback_;
 
  public:
-  tcp_service(uuid id, unsigned short int port);
+  tcp_service(uuid id, unsigned short int port = 0, shared_tcp_handlers handlers = nullptr);
+  shared_tcp_handlers handlers() const;
   uuid get_id() const;
   unsigned short int get_port() const;
   void set_port(unsigned short int port);

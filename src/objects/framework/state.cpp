@@ -55,6 +55,8 @@ void state::set_running(const bool running) { running_.store(running, std::memor
 
 map_hash_of<std::string, shared_queue, std::less<>>& state::queues() noexcept { return queues_; }
 
+std::unordered_map<uuid, shared_tcp_service, boost::hash<uuid>>& state::services() noexcept { return services_; }
+
 shared_router state::get_router() const noexcept { return router_; }
 
 shared_queue state::get_queue(const std::string& name) noexcept {

@@ -29,6 +29,9 @@
 #include <framework/signal_handler.hpp>
 #include <framework/state.hpp>
 #include <framework/task_group.hpp>
+#include <framework/tcp_handlers.hpp>
+#include <framework/tcp_listener.hpp>
+#include <framework/tcp_service.hpp>
 
 namespace framework {
 server::server() : task_group_(std::make_shared<task_group>(state_->ioc().get_executor())) {}
@@ -78,6 +81,25 @@ void server::start(const unsigned short int port) {
   state_->get_connection_pool()->async_run(boost::asio::detached);
 
   state_->run();
+}
+
+void server::serve(shared_tcp_handlers callbacks, unsigned short int port) {
+  auto _service_id = state_->generate_id();
+  const auto _service = std::make_shared<tcp_service>(_service_id, port, callbacks);
+  state_->services().insert({_service_id, _service});
+
+  co_spawn(make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _service),
+           task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
+             if (throwable) {
+               try {
+                 std::rethrow_exception(throwable);
+               } catch (const std::system_error& e) {
+                 std::cerr << "[tcp_service] Boost error: " << e.what() << "\n";
+               } catch (...) {
+                 std::cerr << "[tcp_service] Unknown exception.\n";
+               }
+             }
+           }));
 }
 
 shared_state server::get_state() const { return state_; }

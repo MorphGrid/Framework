@@ -24,7 +24,7 @@
 #include <framework/tcp_session.hpp>
 
 namespace framework {
-async_of<void> tcp_listener(task_group &task_group, const shared_state state, shared_tcp_service service, tcp_handlers callbacks) {
+async_of<void> tcp_listener(task_group &task_group, const shared_state state, shared_tcp_service service) {
   auto _cancellation_state = co_await boost::asio::this_coro::cancellation_state;
   const auto _executor = co_await boost::asio::this_coro::executor;
   auto _endpoint = endpoint{boost::asio::ip::make_address("0.0.0.0"), service->get_port()};
@@ -41,21 +41,19 @@ async_of<void> tcp_listener(task_group &task_group, const shared_state state, sh
 
     auto _session_id = state->generate_id();
     auto _stream = std::make_shared<tcp_stream>(std::move(_socket));
-    auto _connection = std::make_shared<tcp_connection>(_session_id, _socket_executor, _stream);
+    auto _connection = std::make_shared<tcp_connection>(_session_id, _socket_executor, _stream, service);
     service->add(_connection);
 
-    auto _auth = std::make_shared<auth>();
-
-    if (callbacks.on_connect_) co_await callbacks.on_connect_(service, _auth, _connection);
+    if (service->handlers()->on_connect()) co_await service->handlers()->on_connect()(service, _connection);
 
     if (_ec == boost::asio::error::operation_aborted) {
-      state->set_running(false);
+      service->set_running(false);
       co_return;
     }
 
     if (_ec) throw boost::system::system_error{_ec};
 
-    co_spawn(*_socket_executor, tcp_session(state, service, callbacks, _auth, _connection),
+    co_spawn(*_socket_executor, tcp_session(state, service, _connection),
              task_group.adapt([](const std::exception_ptr &throwable) noexcept {
                if (throwable) {
                  try {

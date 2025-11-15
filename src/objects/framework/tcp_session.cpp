@@ -14,28 +14,32 @@
 
 #include <framework/tcp_connection.hpp>
 #include <framework/tcp_handlers.hpp>
+#include <framework/tcp_service.hpp>
 #include <framework/tcp_session.hpp>
 
 namespace framework {
-async_of<void> tcp_session(const shared_state state, const shared_tcp_service service, const tcp_handlers callbacks,
-                           const shared_of<auth> auth, const shared_tcp_connection connection) {
+async_of<void> tcp_session(const shared_state state, const shared_tcp_service service, const shared_tcp_connection connection) {
   auto _cancellation_state = co_await boost::asio::this_coro::cancellation_state;
 
-  if (callbacks.on_accepted_) co_await callbacks.on_accepted_(service, auth, connection);
+  if (service->handlers()->on_accepted()) co_await service->handlers()->on_accepted()(service, connection);
 
   while (!_cancellation_state.cancelled()) {
     connection->get_stream()->expires_after(std::chrono::minutes(60));
 
-    auto [_read_ec, _] = co_await async_read(*connection->get_stream(), connection->get_buffer(), boost::asio::as_tuple);
+    auto _buffer = connection->get_buffer().prepare(1024);
+    auto [_read_ec, _bytes_transferred] = co_await connection->get_stream()->async_read_some(_buffer, boost::asio::as_tuple);
 
-    if (callbacks.on_read_) co_await callbacks.on_read_(service, auth, connection);
+    connection->get_buffer().commit(_bytes_transferred);
 
-    if (_read_ec == boost::beast::http::error::end_of_stream) {
+    if (_read_ec) {
+      if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
       co_return;
     }
+
+    if (service->handlers()->on_read()) co_await service->handlers()->on_read()(service, connection);
   }
 
-  if (callbacks.on_disconnected_) co_await callbacks.on_disconnected_(service, auth, connection);
+  if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
 
   if (!connection->get_stream()->socket().is_open()) co_return;
 

@@ -16,7 +16,10 @@
 #include <framework/tcp_service.hpp>
 
 namespace framework {
-tcp_service::tcp_service(const uuid id, const unsigned short int port) : id_(id), port_(port) {}
+tcp_service::tcp_service(const uuid id, const unsigned short int port, shared_tcp_handlers handlers)
+    : id_(id), port_(port), callback_(std::move(handlers)) {}
+
+shared_tcp_handlers tcp_service::handlers() const { return callback_; }
 
 uuid tcp_service::get_id() const { return id_; }
 
