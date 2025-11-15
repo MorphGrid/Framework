@@ -14,24 +14,32 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_SERVER_HPP
-#define FRAMEWORK_SERVER_HPP
+#ifndef FRAMEWORK_TCP_SERVICE_HPP
+#define FRAMEWORK_TCP_SERVICE_HPP
 
-#include <framework/state.hpp>
 #include <framework/support.hpp>
 
 namespace framework {
-class server : public std::enable_shared_from_this<server> {
-  shared_state state_ = std::make_shared<state>();
-  shared_of<task_group> task_group_;
+class tcp_service : public std::enable_shared_from_this<tcp_service> {
+  atomic_of<bool> running_{false};
+  uuid id_;
+  unsigned short int port_;
+  std::mutex mutex_;
+  vector_of<shared_tcp_connection> writers_;
+  shared_tcp_handlers callback_;
 
  public:
-  server();
-  void start(unsigned short int port = 0);
-  void serve(shared_tcp_handlers callbacks, unsigned short int port = 0);
-  shared_state get_state() const;
-  shared_of<task_group> get_task_group();
+  explicit tcp_service(uuid id, unsigned short int port = 0, shared_tcp_handlers handlers = nullptr);
+  shared_tcp_handlers handlers() const;
+  uuid get_id() const;
+  unsigned short int get_port() const;
+  void set_port(unsigned short int port);
+  bool get_running() const;
+  void set_running(bool running);
+  void add(shared_tcp_connection writer);
+  void remove(uuid session_id);
+  vector_of<shared_tcp_connection> snapshot();
 };
 }  // namespace framework
 
-#endif  // FRAMEWORK_SERVER_HPP
+#endif  // FRAMEWORK_TCP_SERVICE_HPP

@@ -14,13 +14,13 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_KERNEL_HPP
-#define FRAMEWORK_KERNEL_HPP
+#ifndef FRAMEWORK_TCP_SESSION_HPP
+#define FRAMEWORK_TCP_SESSION_HPP
 
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<message> kernel(shared_state state, request_type request) noexcept;
+async_of<void> tcp_session(shared_state state, shared_tcp_service service, shared_tcp_connection writer);
 }  // namespace framework
 
-#endif  // FRAMEWORK_KERNEL_HPP
+#endif  // FRAMEWORK_TCP_SESSION_HPP

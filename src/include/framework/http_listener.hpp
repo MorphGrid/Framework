@@ -14,13 +14,13 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_LISTENER_HPP
-#define FRAMEWORK_LISTENER_HPP
+#ifndef FRAMEWORK_HTTP_LISTENER_HPP
+#define FRAMEWORK_HTTP_LISTENER_HPP
 
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> listener(task_group& task_group, shared_state state, endpoint endpoint);
+async_of<void> http_listener(task_group& task_group, shared_state state, endpoint endpoint);
 }  // namespace framework
 
-#endif  // FRAMEWORK_LISTENER_HPP
+#endif  // FRAMEWORK_HTTP_LISTENER_HPP

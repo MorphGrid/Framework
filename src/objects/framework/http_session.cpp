@@ -12,11 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#include <framework/kernel.hpp>
-#include <framework/session.hpp>
+#include <framework/http_kernel.hpp>
+#include <framework/http_session.hpp>
 
 namespace framework {
-async_of<void> session(const shared_state state, tcp_stream stream) {
+async_of<void> http_session(const shared_state state, tcp_stream stream) {
   flat_buffer _buffer;
   auto _cancellation_state = co_await boost::asio::this_coro::cancellation_state;
 
@@ -24,11 +24,11 @@ async_of<void> session(const shared_state state, tcp_stream stream) {
     stream.expires_after(std::chrono::seconds(5));
 
     request_type _request;
-    auto [_read_ec, _] = co_await async_read(stream, _buffer, _request, boost::asio::as_tuple);
-    if (_read_ec == boost::beast::http::error::end_of_stream) {
+    if (auto [_read_ec, _] = co_await async_read(stream, _buffer, _request, boost::asio::as_tuple);
+        _read_ec == boost::beast::http::error::end_of_stream) {
       co_return;
     }
-    message _message = co_await kernel(state, std::move(_request));
+    message _message = co_await http_kernel(state, std::move(_request));
 
     const bool keep_alive = _message.keep_alive();
     co_await async_write(stream, std::move(_message));

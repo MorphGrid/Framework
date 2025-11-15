@@ -12,8 +12,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#include <gtest/gtest.h>
+#pragma once
 
-#include <framework/version.hpp>
+#ifndef FRAMEWORK_HTTP_KERNEL_HPP
+#define FRAMEWORK_HTTP_KERNEL_HPP
 
-TEST(test_version, contains_current_version) { ASSERT_EQ(framework::get_version(), "1.0.1"); }
+#include <framework/support.hpp>
+
+namespace framework {
+async_of<message> http_kernel(shared_state state, request_type request) noexcept;
+}  // namespace framework
+
+#endif  // FRAMEWORK_HTTP_KERNEL_HPP

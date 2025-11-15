@@ -75,6 +75,15 @@ using shared_queue = std::shared_ptr<queue>;
 class jwt;
 using shared_jwt = std::shared_ptr<jwt>;
 
+class tcp_handlers;
+using shared_tcp_handlers = std::shared_ptr<tcp_handlers>;
+
+class tcp_connection;
+using shared_tcp_connection = std::shared_ptr<tcp_connection>;
+
+class tcp_service;
+using shared_tcp_service = std::shared_ptr<tcp_service>;
+
 class validator;
 using shared_validator = std::shared_ptr<validator>;
 
@@ -150,6 +159,7 @@ using endpoint = boost::asio::ip::tcp::endpoint;
 using acceptor = boost::asio::ip::tcp::acceptor;
 using resolver = boost::asio::ip::tcp::resolver;
 using tcp_stream = boost::beast::tcp_stream;
+using tcp_executor = boost::asio::strand<boost::asio::io_context::executor_type>;
 using flat_buffer = boost::beast::flat_buffer;
 using system_error = boost::system::system_error;
 using socket = boost::asio::ip::tcp::socket;

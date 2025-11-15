@@ -14,10 +14,8 @@
 
 #include <dotenv.h>
 
-#include <framework/encoding.hpp>
 #include <framework/metrics.hpp>
 #include <framework/queue.hpp>
-#include <framework/router.hpp>
 #include <framework/state.hpp>
 
 namespace framework {
@@ -41,6 +39,8 @@ state::~state() {
 
 shared_of<boost::mysql::connection_pool> state::get_connection_pool() { return connection_pool_; }
 
+uuid state::generate_id() { return id_generator_(); }
+
 bool state::get_running() const { return running_.load(std::memory_order_acquire); }
 
 shared_metrics state::get_metrics() { return metrics_; }
@@ -54,6 +54,8 @@ void state::set_port(const unsigned short int port) { port_.store(port, std::mem
 void state::set_running(const bool running) { running_.store(running, std::memory_order_release); }
 
 map_hash_of<std::string, shared_queue, std::less<>>& state::queues() noexcept { return queues_; }
+
+std::unordered_map<uuid, shared_tcp_service, boost::hash<uuid>>& state::services() noexcept { return services_; }
 
 shared_router state::get_router() const noexcept { return router_; }
 
@@ -84,4 +86,14 @@ void state::run() noexcept {
 }
 
 boost::asio::io_context& state::ioc() noexcept { return ioc_; }
+
+shared_tcp_service state::get_or_create_sessions(const uuid service_id) {
+  std::lock_guard lock(sessions_mutex_);
+  return services_[service_id];
+}
+
+void state::remove_service(const uuid service_id) {
+  std::lock_guard lock(sessions_mutex_);
+  services_.erase(service_id);
+}
 }  // namespace framework
