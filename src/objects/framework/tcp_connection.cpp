@@ -12,16 +12,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#ifndef FRAMEWORK_TCP_SESSION_HPP
-#define FRAMEWORK_TCP_SESSION_HPP
-
-#include <framework/support.hpp>
+#include <framework/tcp_connection.hpp>
 
 namespace framework {
-async_of<void> tcp_session(shared_state state, shared_tcp_service service, tcp_handlers callbacks, shared_of<auth> auth,
-                           shared_tcp_connection writer);
-}  // namespace framework
+tcp_connection::tcp_connection(const uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream)
+    : id_(id), strand_(std::move(strand)), stream_(std::move(stream)) {}
 
-#endif  // FRAMEWORK_TCP_SESSION_HPP
+flat_buffer& tcp_connection::get_buffer() { return buffer_; }
+
+uuid tcp_connection::get_id() const noexcept { return id_; }
+
+shared_of<tcp_executor> tcp_connection::get_strand() const noexcept { return strand_; }
+
+shared_of<tcp_stream> tcp_connection::get_stream() const noexcept { return stream_; }
+}  // namespace framework

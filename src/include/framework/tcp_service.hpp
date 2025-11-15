@@ -14,14 +14,30 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_TCP_SESSION_HPP
-#define FRAMEWORK_TCP_SESSION_HPP
+#ifndef FRAMEWORK_TCP_SERVICE_HPP
+#define FRAMEWORK_TCP_SERVICE_HPP
 
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> tcp_session(shared_state state, shared_tcp_service service, tcp_handlers callbacks, shared_of<auth> auth,
-                           shared_tcp_connection writer);
+class tcp_service : std::enable_shared_from_this<tcp_service> {
+  atomic_of<bool> running_{false};
+  uuid id_;
+  unsigned short int port_;
+  std::mutex mutex_;
+  vector_of<shared_tcp_connection> writers_;
+
+ public:
+  tcp_service(uuid id, unsigned short int port);
+  uuid get_id() const;
+  unsigned short int get_port() const;
+  void set_port(unsigned short int port);
+  bool get_running() const;
+  void set_running(bool running);
+  void add(shared_tcp_connection writer);
+  void remove(uuid session_id);
+  vector_of<shared_tcp_connection> snapshot();
+};
 }  // namespace framework
 
-#endif  // FRAMEWORK_TCP_SESSION_HPP
+#endif  // FRAMEWORK_TCP_SERVICE_HPP

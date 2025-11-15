@@ -12,29 +12,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#include <framework/tcp_connection.hpp>
+#include <framework/tcp_handlers.hpp>
 #include <framework/tcp_session.hpp>
 
 namespace framework {
-async_of<void> tcp_session(const shared_state state, tcp_stream stream) {
-  flat_buffer _buffer;
-  flat_buffer _write_buffer;
+async_of<void> tcp_session(const shared_state state, const shared_tcp_service service, const tcp_handlers callbacks,
+                           const shared_of<auth> auth, const shared_tcp_connection connection) {
   auto _cancellation_state = co_await boost::asio::this_coro::cancellation_state;
 
-  while (!_cancellation_state.cancelled()) {
-    stream.expires_after(std::chrono::seconds(5));
+  if (callbacks.on_accepted_) co_await callbacks.on_accepted_(service, auth, connection);
 
-    request_type _request;
-    auto [_read_ec, _] = co_await async_read(stream, _buffer, _request, boost::asio::as_tuple);
+  while (!_cancellation_state.cancelled()) {
+    connection->get_stream()->expires_after(std::chrono::minutes(60));
+
+    auto [_read_ec, _] = co_await async_read(*connection->get_stream(), connection->get_buffer(), boost::asio::as_tuple);
+
+    if (callbacks.on_read_) co_await callbacks.on_read_(service, auth, connection);
+
     if (_read_ec == boost::beast::http::error::end_of_stream) {
       co_return;
     }
-    constexpr std::array<std::byte, 1> _data = {std::byte{0x01}};
-    _write_buffer.reserve(1);
-    co_await async_write(stream, boost::asio::buffer(_data));
   }
 
-  if (!stream.socket().is_open()) co_return;
+  if (callbacks.on_disconnected_) co_await callbacks.on_disconnected_(service, auth, connection);
 
-  stream.socket().shutdown(socket::shutdown_send);
+  if (!connection->get_stream()->socket().is_open()) co_return;
+
+  connection->get_stream()->socket().shutdown(socket::shutdown_send);
 }
 }  // namespace framework

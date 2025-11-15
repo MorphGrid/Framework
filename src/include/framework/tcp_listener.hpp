@@ -20,7 +20,7 @@
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> tcp_listener(task_group& task_group, shared_state state, endpoint endpoint);
+async_of<void> tcp_listener(task_group& task_group, shared_state state, shared_tcp_service service, tcp_handlers callbacks);
 }  // namespace framework
 
 #endif  // FRAMEWORK_TCP_LISTENER_HPP

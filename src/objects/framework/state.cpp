@@ -14,10 +14,8 @@
 
 #include <dotenv.h>
 
-#include <framework/encoding.hpp>
 #include <framework/metrics.hpp>
 #include <framework/queue.hpp>
-#include <framework/router.hpp>
 #include <framework/state.hpp>
 
 namespace framework {
@@ -40,6 +38,8 @@ state::~state() {
 }
 
 shared_of<boost::mysql::connection_pool> state::get_connection_pool() { return connection_pool_; }
+
+uuid state::generate_id() { return id_generator_(); }
 
 bool state::get_running() const { return running_.load(std::memory_order_acquire); }
 
@@ -84,4 +84,14 @@ void state::run() noexcept {
 }
 
 boost::asio::io_context& state::ioc() noexcept { return ioc_; }
+
+shared_tcp_service state::get_or_create_sessions(const uuid service_id) {
+  std::lock_guard lock(sessions_mutex_);
+  return services_[service_id];
+}
+
+void state::remove_service(const uuid service_id) {
+  std::lock_guard lock(sessions_mutex_);
+  services_.erase(service_id);
+}
 }  // namespace framework

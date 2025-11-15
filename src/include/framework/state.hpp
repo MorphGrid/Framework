@@ -24,11 +24,15 @@
 
 namespace framework {
 class state : public std::enable_shared_from_this<state> {
+  boost::uuids::random_generator id_generator_ = boost::uuids::random_generator();
   shared_router router_ = std::make_shared<router>();
   map_hash_of<std::string, shared_queue, std::less<>> queues_;
   std::mutex queues_mutex_;
   boost::asio::io_context ioc_{static_cast<int>(std::thread::hardware_concurrency())};
   shared_of<boost::mysql::connection_pool> connection_pool_;
+  std::unordered_map<uuid, shared_tcp_service, boost::hash<uuid>> services_;
+  std::mutex sessions_mutex_;
+
   shared_of<metrics> metrics_ = std::make_shared<metrics>();
 
   atomic_of<bool> running_{false};
@@ -39,6 +43,7 @@ class state : public std::enable_shared_from_this<state> {
   state();
   ~state();
   shared_of<boost::mysql::connection_pool> get_connection_pool();
+  uuid generate_id();
   bool get_running() const;
   shared_metrics get_metrics();
   std::string get_key() const;
@@ -52,6 +57,9 @@ class state : public std::enable_shared_from_this<state> {
   bool queue_exists(const std::string& name) noexcept;
   void run() noexcept;
   boost::asio::io_context& ioc() noexcept;
+
+  shared_tcp_service get_or_create_sessions(uuid service_id);
+  void remove_service(uuid service_id);
 };
 }  // namespace framework
 
