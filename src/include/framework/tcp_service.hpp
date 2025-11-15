@@ -20,7 +20,7 @@
 #include <framework/support.hpp>
 
 namespace framework {
-class tcp_service : std::enable_shared_from_this<tcp_service> {
+class tcp_service : public std::enable_shared_from_this<tcp_service> {
   atomic_of<bool> running_{false};
   uuid id_;
   unsigned short int port_;

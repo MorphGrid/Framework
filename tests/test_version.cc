@@ -16,4 +16,4 @@
 
 #include <framework/version.hpp>
 
-TEST(test_version, contains_current_version) { ASSERT_EQ(framework::get_version(), "1.0.0"); }
+TEST(test_version, contains_current_version) { ASSERT_EQ(framework::get_version(), "1.0.1"); }
