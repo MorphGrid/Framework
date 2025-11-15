@@ -19,8 +19,8 @@
 #include <framework/errors/not_found_error.hpp>
 #include <framework/errors/parse_error.hpp>
 #include <framework/errors/signature_error.hpp>
-#include <framework/jwt.hpp>
 #include <framework/http_kernel.hpp>
+#include <framework/jwt.hpp>
 #include <framework/route.hpp>
 #include <framework/router.hpp>
 #include <framework/state.hpp>

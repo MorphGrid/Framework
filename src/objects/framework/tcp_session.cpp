@@ -28,7 +28,7 @@ async_of<void> tcp_session(const shared_state state, tcp_stream stream) {
     if (_read_ec == boost::beast::http::error::end_of_stream) {
       co_return;
     }
-    constexpr std::array<std::byte, 1> _data = { std::byte{0x01} };
+    constexpr std::array<std::byte, 1> _data = {std::byte{0x01}};
     _write_buffer.reserve(1);
     co_await async_write(stream, boost::asio::buffer(_data));
   }
