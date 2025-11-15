@@ -86,7 +86,7 @@ void server::start(const unsigned short int port) {
 void server::serve(shared_tcp_handlers callbacks, unsigned short int port) {
   auto _service_id = state_->generate_id();
   const auto _service = std::make_shared<tcp_service>(_service_id, port, callbacks);
-  state_->services().insert({_service_id, _service});
+  state_->services().try_emplace(_service_id, _service);
 
   co_spawn(make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _service),
            task_group_->adapt([](const std::exception_ptr& throwable) noexcept {

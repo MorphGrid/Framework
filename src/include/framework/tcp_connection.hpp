@@ -39,12 +39,12 @@ class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
 
   template <typename Buffer>
   void invoke(Buffer&& buf) {
-    auto self = shared_from_this();
+    auto _self = shared_from_this();
     co_spawn(
         *strand_,
-        [self, buf = std::forward<Buffer>(buf)]() mutable -> async_of<void> {
-          co_await async_write(*self->stream_, boost::asio::buffer(buf));
-          co_await self->notify_write();
+        [_self, _buf = std::forward<Buffer>(buf)]() mutable -> async_of<void> {
+          co_await async_write(*_self->stream_, boost::asio::buffer(_buf));
+          co_await _self->notify_write();
           co_return;
         },
         boost::asio::detached);

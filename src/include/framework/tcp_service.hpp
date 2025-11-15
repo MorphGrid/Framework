@@ -29,7 +29,7 @@ class tcp_service : std::enable_shared_from_this<tcp_service> {
   shared_tcp_handlers callback_;
 
  public:
-  tcp_service(uuid id, unsigned short int port = 0, shared_tcp_handlers handlers = nullptr);
+  explicit tcp_service(uuid id, unsigned short int port = 0, shared_tcp_handlers handlers = nullptr);
   shared_tcp_handlers handlers() const;
   uuid get_id() const;
   unsigned short int get_port() const;
