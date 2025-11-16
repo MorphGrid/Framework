@@ -820,10 +820,7 @@ TEST_F(test_server, basic_tcp_service_check) {
   _header[2] = static_cast<unsigned char>((_payload_length >> 8) & 0xFF);
   _header[3] = static_cast<unsigned char>((_payload_length >> 0) & 0xFF);
 
-  std::array<boost::asio::const_buffer, 2> _buffers{
-    boost::asio::buffer(_header, sizeof(_header)),
-    boost::asio::buffer(_data)
-  };
+  std::array<boost::asio::const_buffer, 2> _buffers{boost::asio::buffer(_header, sizeof(_header)), boost::asio::buffer(_data)};
   boost::asio::write(_stream.socket(), _buffers);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -836,14 +833,12 @@ TEST_F(test_server, basic_tcp_service_check) {
   std::string _pong = "pong";
   _writer->invoke(_pong);
 
-  unsigned char _response_header[4] = {0,0,0,0};
+  unsigned char _response_header[4] = {0, 0, 0, 0};
   boost::asio::read(_stream.socket(), boost::asio::buffer(_response_header, 4));
 
   std::uint32_t _response_length =
-    (static_cast<std::uint32_t>(_response_header[0]) << 24) |
-    (static_cast<std::uint32_t>(_response_header[1]) << 16) |
-    (static_cast<std::uint32_t>(_response_header[2]) << 8)  |
-    (static_cast<std::uint32_t>(_response_header[3]) << 0);
+      (static_cast<std::uint32_t>(_response_header[0]) << 24) | (static_cast<std::uint32_t>(_response_header[1]) << 16) |
+      (static_cast<std::uint32_t>(_response_header[2]) << 8) | (static_cast<std::uint32_t>(_response_header[3]) << 0);
 
   ASSERT_EQ(_response_length, 4u);
 

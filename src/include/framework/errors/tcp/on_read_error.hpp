@@ -19,6 +19,6 @@
 
 namespace framework::errors::tcp {
 class on_read_error final : public std::exception {};
-}  // namespace framework::errors
+}  // namespace framework::errors::tcp
 
 #endif  // FRAMEWORK_ERRORS_TCP_ON_READ_ERROR_HPP

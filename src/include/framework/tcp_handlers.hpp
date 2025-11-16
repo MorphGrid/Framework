@@ -23,8 +23,10 @@ namespace framework {
 class tcp_handlers : public std::enable_shared_from_this<tcp_handlers> {
  public:
   using handler_type = std::function<async_of<void>(shared_tcp_service service, shared_tcp_connection connection)>;
-  using read_handler_type = std::function<async_of<void>(shared_tcp_service service, shared_tcp_connection connection, std::string payload)>;
-  using error_handler_type = std::function<async_of<void>(shared_tcp_service service, shared_tcp_connection connection, const std::exception &exception)>;
+  using read_handler_type =
+      std::function<async_of<void>(shared_tcp_service service, shared_tcp_connection connection, std::string payload)>;
+  using error_handler_type =
+      std::function<async_of<void>(shared_tcp_service service, shared_tcp_connection connection, const std::exception &exception)>;
 
   explicit tcp_handlers(handler_type on_connect = nullptr, handler_type on_accepted = nullptr, read_handler_type on_read = nullptr,
                         handler_type on_write = nullptr, handler_type on_disconnected = nullptr, error_handler_type on_error = nullptr);

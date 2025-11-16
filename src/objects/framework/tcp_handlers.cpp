@@ -15,24 +15,24 @@
 #include <framework/tcp_handlers.hpp>
 
 namespace framework {
-    tcp_handlers::tcp_handlers(handler_type on_connect, handler_type on_accepted, read_handler_type on_read,
-    handler_type on_write, handler_type on_disconnected, error_handler_type on_error)
-  : on_connect_(std::move(on_connect)),
-    on_accepted_(std::move(on_accepted)),
-    on_read_(std::move(on_read)),
-    on_write_(std::move(on_write)),
-on_disconnected_(std::move(on_disconnected)),
-on_error_(std::move(on_error))  {}
+tcp_handlers::tcp_handlers(handler_type on_connect, handler_type on_accepted, read_handler_type on_read, handler_type on_write,
+                           handler_type on_disconnected, error_handler_type on_error)
+    : on_connect_(std::move(on_connect)),
+      on_accepted_(std::move(on_accepted)),
+      on_read_(std::move(on_read)),
+      on_write_(std::move(on_write)),
+      on_disconnected_(std::move(on_disconnected)),
+      on_error_(std::move(on_error)) {}
 
-    tcp_handlers::handler_type tcp_handlers::on_connect() const  { return on_connect_; }
+tcp_handlers::handler_type tcp_handlers::on_connect() const { return on_connect_; }
 
-    tcp_handlers::handler_type tcp_handlers::on_accepted() const { return on_accepted_; }
+tcp_handlers::handler_type tcp_handlers::on_accepted() const { return on_accepted_; }
 
-    tcp_handlers::read_handler_type tcp_handlers::on_read() const { return on_read_; }
+tcp_handlers::read_handler_type tcp_handlers::on_read() const { return on_read_; }
 
-    tcp_handlers::handler_type tcp_handlers::on_write() const  { return on_write_; }
+tcp_handlers::handler_type tcp_handlers::on_write() const { return on_write_; }
 
-    tcp_handlers::handler_type tcp_handlers::on_disconnected() const { return on_disconnected_; }
+tcp_handlers::handler_type tcp_handlers::on_disconnected() const { return on_disconnected_; }
 
-    tcp_handlers::error_handler_type tcp_handlers::on_error() const { return on_error_; }
+tcp_handlers::error_handler_type tcp_handlers::on_error() const { return on_error_; }
 }  // namespace framework
