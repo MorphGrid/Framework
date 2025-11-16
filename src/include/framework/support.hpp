@@ -163,6 +163,9 @@ using tcp_executor = boost::asio::strand<boost::asio::io_context::executor_type>
 using flat_buffer = boost::beast::flat_buffer;
 using system_error = boost::system::system_error;
 using socket = boost::asio::ip::tcp::socket;
+
+static constexpr std::size_t HEADER_SIZE = 4;
+static constexpr std::uint32_t MAX_FRAME_SIZE = 1024 * 1024;
 }  // namespace framework
 
 #endif  // FRAMEWORK_SUPPORT_HPP

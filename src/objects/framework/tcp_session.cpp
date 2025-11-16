@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#include <framework/errors/tcp/frame_too_large.hpp>
+#include <framework/errors/tcp/on_read_error.hpp>
 #include <framework/tcp_connection.hpp>
 #include <framework/tcp_handlers.hpp>
 #include <framework/tcp_service.hpp>
@@ -23,20 +25,65 @@ async_of<void> tcp_session(const shared_state state, const shared_tcp_service se
 
   if (service->handlers()->on_accepted()) co_await service->handlers()->on_accepted()(service, connection);
 
+  auto &socket = connection->get_stream()->socket();
+  auto &buffer = connection->get_buffer();
+
   while (!_cancellation_state.cancelled()) {
     connection->get_stream()->expires_after(std::chrono::minutes(60));
 
-    auto _buffer = connection->get_buffer().prepare(1024);
-    auto [_read_ec, _bytes_transferred] = co_await connection->get_stream()->async_read_some(_buffer, boost::asio::as_tuple);
+    auto [_header_ec, _header_read_bytes] =
+        co_await async_read(socket, buffer, boost::asio::transfer_exactly(HEADER_SIZE), boost::asio::as_tuple);
 
-    connection->get_buffer().commit(_bytes_transferred);
-
-    if (_read_ec) {
+    if (_header_ec) {
       if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
       co_return;
     }
 
-    if (service->handlers()->on_read()) co_await service->handlers()->on_read()(service, connection);
+    std::uint32_t _payload_length = 0;
+    std::istream _input_stream(&buffer);
+    unsigned char _header[HEADER_SIZE];
+    _input_stream.read(reinterpret_cast<char *>(_header), HEADER_SIZE);
+    _payload_length = (static_cast<std::uint32_t>(_header[0]) << 24) | (static_cast<std::uint32_t>(_header[1]) << 16) |
+                      (static_cast<std::uint32_t>(_header[2]) << 8) | (static_cast<std::uint32_t>(_header[3]) << 0);
+
+    if (_payload_length == 0) {
+      continue;
+    }
+
+    if (_payload_length > MAX_FRAME_SIZE) {
+      const errors::tcp::frame_too_large _error;
+      if (service->handlers()->on_error()) co_await service->handlers()->on_error()(service, connection, _error);
+      if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
+      boost::system::error_code ignored_ec;
+      socket.shutdown(boost::asio::socket_base::shutdown_both, ignored_ec);
+      socket.close(ignored_ec);
+      co_return;
+    }
+
+    auto [_payload_ec, _bytes_transferred] =
+        co_await async_read(socket, buffer, boost::asio::transfer_exactly(_payload_length), boost::asio::as_tuple);
+    if (_payload_ec) {
+      const errors::tcp::on_read_error _error;
+      if (service->handlers()->on_error()) co_await service->handlers()->on_error()(service, connection, _error);
+      if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
+      co_return;
+    }
+
+    if (static_cast<bool>(_cancellation_state.cancelled())) {
+      if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
+      co_return;
+    }
+
+    std::string _payload;
+    _payload.resize(_payload_length);
+    {
+      std::istream is(&buffer);
+      is.read(_payload.data(), _payload_length);
+    }
+
+    if (service->handlers()->on_read()) {
+      co_await service->handlers()->on_read()(service, connection, std::move(_payload));
+    }
   }
 
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);

@@ -22,28 +22,50 @@
 
 namespace framework {
 class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
-  flat_buffer buffer_;
+  boost::asio::streambuf buffer_;
   shared_tcp_service service_;
   shared_auth auth_ = std::make_shared<auth>();
 
  public:
   tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_service service);
 
-  flat_buffer& get_buffer();
+  boost::asio::streambuf &get_buffer();
+
   uuid get_id() const noexcept;
+
   shared_of<tcp_executor> get_strand() const noexcept;
+
   shared_of<tcp_stream> get_stream() const noexcept;
+
   shared_tcp_service get_service() const noexcept;
 
   async_of<void> notify_write();
 
   template <typename Buffer>
-  void invoke(Buffer&& buf) {
+  void invoke(Buffer &&buf) {
     auto _self = shared_from_this();
     co_spawn(
         *strand_,
         [_self, _buf = std::forward<Buffer>(buf)]() mutable -> async_of<void> {
-          co_await async_write(*_self->stream_, boost::asio::buffer(_buf));
+          auto _payload_buffer = boost::asio::buffer(_buf);
+          const std::size_t _payload_size = boost::asio::buffer_size(_payload_buffer);
+
+          if (_payload_size > MAX_FRAME_SIZE) {
+            std::cerr << "Payload size is too big" << std::endl;
+            co_return;
+          }
+
+          const std::uint32_t _length = static_cast<std::uint32_t>(_payload_size);
+
+          std::array<unsigned char, 4> _header;
+          _header[0] = static_cast<unsigned char>(_length >> 24 & 0xFF);
+          _header[1] = static_cast<unsigned char>(_length >> 16 & 0xFF);
+          _header[2] = static_cast<unsigned char>(_length >> 8 & 0xFF);
+          _header[3] = static_cast<unsigned char>(_length >> 0 & 0xFF);
+
+          std::array<boost::asio::const_buffer, 2> _buffers{boost::asio::buffer(_header), _payload_buffer};
+
+          co_await boost::asio::async_write(*_self->stream_, _buffers, boost::asio::as_tuple);
           co_await _self->notify_write();
           co_return;
         },

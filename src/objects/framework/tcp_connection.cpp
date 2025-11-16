@@ -18,11 +18,9 @@
 
 namespace framework {
 tcp_connection::tcp_connection(const uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_service service)
-    : service_(service), id_(id), strand_(std::move(strand)), stream_(std::move(stream)) {
-  buffer_.reserve(4096);
-}
+    : service_(service), id_(id), strand_(std::move(strand)), stream_(std::move(stream)) {}
 
-flat_buffer& tcp_connection::get_buffer() { return buffer_; }
+boost::asio::streambuf& tcp_connection::get_buffer() { return buffer_; }
 
 uuid tcp_connection::get_id() const noexcept { return id_; }
 
