@@ -70,7 +70,7 @@ class test_server : public testing::Test {
             client_accepted_.store(true);
             co_return;
           },
-          [&](shared_tcp_service, shared_tcp_connection) -> async_of<void> {
+          [&](shared_tcp_service, shared_tcp_connection, const std::string payload) -> async_of<void> {
             client_read_.store(true);
             co_return;
           },
@@ -812,7 +812,19 @@ TEST_F(test_server, basic_tcp_service_check) {
   _stream.connect(_results);
 
   std::string _data = "ping";
-  boost::asio::write(_stream.socket(), boost::asio::buffer(_data));
+  std::uint32_t _payload_length = static_cast<std::uint32_t>(_data.size());
+
+  unsigned char _header[4];
+  _header[0] = static_cast<unsigned char>((_payload_length >> 24) & 0xFF);
+  _header[1] = static_cast<unsigned char>((_payload_length >> 16) & 0xFF);
+  _header[2] = static_cast<unsigned char>((_payload_length >> 8) & 0xFF);
+  _header[3] = static_cast<unsigned char>((_payload_length >> 0) & 0xFF);
+
+  std::array<boost::asio::const_buffer, 2> _buffers{
+    boost::asio::buffer(_header, sizeof(_header)),
+    boost::asio::buffer(_data)
+  };
+  boost::asio::write(_stream.socket(), _buffers);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -824,15 +836,26 @@ TEST_F(test_server, basic_tcp_service_check) {
   std::string _pong = "pong";
   _writer->invoke(_pong);
 
-  std::vector _pong_response(4, std::byte{0});
-  boost::asio::read(_stream.socket(), boost::asio::buffer(_pong_response.data(), _pong_response.size()));
+  unsigned char _response_header[4] = {0,0,0,0};
+  boost::asio::read(_stream.socket(), boost::asio::buffer(_response_header, 4));
+
+  std::uint32_t _response_length =
+    (static_cast<std::uint32_t>(_response_header[0]) << 24) |
+    (static_cast<std::uint32_t>(_response_header[1]) << 16) |
+    (static_cast<std::uint32_t>(_response_header[2]) << 8)  |
+    (static_cast<std::uint32_t>(_response_header[3]) << 0);
+
+  ASSERT_EQ(_response_length, 4u);
+
+  std::vector<char> _response_payload(_response_length);
+  boost::asio::read(_stream.socket(), boost::asio::buffer(_response_payload.data(), _response_payload.size()));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  ASSERT_EQ(_pong_response[0], std::byte{'p'});
-  ASSERT_EQ(_pong_response[1], std::byte{'o'});
-  ASSERT_EQ(_pong_response[2], std::byte{'n'});
-  ASSERT_EQ(_pong_response[3], std::byte{'g'});
+  ASSERT_EQ(_response_payload[0], 'p');
+  ASSERT_EQ(_response_payload[1], 'o');
+  ASSERT_EQ(_response_payload[2], 'n');
+  ASSERT_EQ(_response_payload[3], 'g');
   ASSERT_TRUE(client_write_.load());
 
   boost::beast::error_code _ec;

@@ -22,34 +22,27 @@
 namespace framework {
 class tcp_handlers : public std::enable_shared_from_this<tcp_handlers> {
  public:
-  using handler_type = std::function<async_of<void>(shared_tcp_service, shared_tcp_connection)>;
+  using handler_type = std::function<async_of<void>(shared_tcp_service service, shared_tcp_connection connection)>;
+  using read_handler_type = std::function<async_of<void>(shared_tcp_service service, shared_tcp_connection connection, std::string payload)>;
+  using error_handler_type = std::function<async_of<void>(shared_tcp_service service, shared_tcp_connection connection, const std::exception &exception)>;
 
-  explicit tcp_handlers(handler_type on_connect = nullptr, handler_type on_accepted = nullptr, handler_type on_read = nullptr,
-                        handler_type on_write = nullptr, handler_type on_disconnected = nullptr)
-      : on_connect_(std::move(on_connect)),
-        on_accepted_(std::move(on_accepted)),
-        on_read_(std::move(on_read)),
-        on_write_(std::move(on_write)),
-        on_disconnected_(std::move(on_disconnected)) {}
+  explicit tcp_handlers(handler_type on_connect = nullptr, handler_type on_accepted = nullptr, read_handler_type on_read = nullptr,
+                        handler_type on_write = nullptr, handler_type on_disconnected = nullptr, error_handler_type on_error = nullptr);
 
-  handler_type on_connect() const { return on_connect_; }
-  handler_type on_accepted() const { return on_accepted_; }
-  handler_type on_read() const { return on_read_; }
-  handler_type on_write() const { return on_write_; }
-  handler_type on_disconnected() const { return on_disconnected_; }
-
-  void set_on_connect(handler_type h) { on_connect_ = std::move(h); }
-  void set_on_accepted(handler_type h) { on_accepted_ = std::move(h); }
-  void set_on_read(handler_type h) { on_read_ = std::move(h); }
-  void set_on_write(handler_type h) { on_write_ = std::move(h); }
-  void set_on_disconnected(handler_type h) { on_disconnected_ = std::move(h); }
+  handler_type on_connect() const;
+  handler_type on_accepted() const;
+  read_handler_type on_read() const;
+  handler_type on_write() const;
+  handler_type on_disconnected() const;
+  error_handler_type on_error() const;
 
  private:
   handler_type on_connect_;
   handler_type on_accepted_;
-  handler_type on_read_;
+  read_handler_type on_read_;
   handler_type on_write_;
   handler_type on_disconnected_;
+  error_handler_type on_error_;
 };
 }  // namespace framework
 
