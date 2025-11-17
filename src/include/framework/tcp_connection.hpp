@@ -55,7 +55,7 @@ class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
             co_return;
           }
 
-          const std::uint32_t _length = static_cast<std::uint32_t>(_payload_size);
+          const auto _length = static_cast<std::uint32_t>(_payload_size);
 
           std::array<unsigned char, 4> _header;
           _header[0] = static_cast<unsigned char>(_length >> 24 & 0xFF);
