@@ -36,10 +36,9 @@ std::uint32_t read_uint32_from_buffer(boost::asio::streambuf &buffer) {
          static_cast<std::uint32_t>(_header[2]) << 8 | static_cast<std::uint32_t>(_header[3]) << 0;
 }
 
-template <typename ErrT>
-async_of<void> notify_error_and_close(const shared_tcp_service &service, const shared_tcp_connection &connection,
-                                      boost::asio::ip::tcp::socket &socket, ErrT &&err) {
-  if (service->handlers()->on_error()) co_await service->handlers()->on_error()(service, connection, std::forward<ErrT>(err));
+async_of<void> notify_error_and_close(const shared_tcp_service service, const shared_tcp_connection connection,
+                                      boost::asio::ip::tcp::socket &socket, const std::exception error) {
+  if (service->handlers()->on_error()) co_await service->handlers()->on_error()(service, connection, error);
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
   boost::system::error_code _ec;
   socket.shutdown(boost::asio::socket_base::shutdown_both, _ec);
@@ -47,7 +46,7 @@ async_of<void> notify_error_and_close(const shared_tcp_service &service, const s
   co_return;
 }
 
-async_of<void> notify_disconnected_if_present(const shared_tcp_service &service, const shared_tcp_connection &connection) {
+async_of<void> notify_disconnected_if_present(const shared_tcp_service service, const shared_tcp_connection connection) {
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
   co_return;
 }
