@@ -92,7 +92,7 @@ class test_server : public testing::Test {
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    auto _services = server_->get_state()->services();
+    auto _services = server_->get_state()->endpoints();
     while (true) {
       bool _all_running = true;
       for (const auto &_service : _services | std::views::values) {
@@ -803,7 +803,7 @@ TEST_F(test_server, can_handle_exceptions) {
 }
 
 TEST_F(test_server, basic_tcp_endpoint_check) {
-  const auto _services = server_->get_state()->services();
+  const auto _services = server_->get_state()->endpoints();
   boost::asio::io_context _client_ioc;
   resolver _resolver(_client_ioc);
   const auto &_service = _services.begin()->second;
@@ -863,7 +863,7 @@ TEST_F(test_server, basic_tcp_endpoint_check) {
 }
 
 TEST_F(test_server, basic_tcp_endpoint_check2) {
-  const auto _services = server_->get_state()->services();
+  const auto _services = server_->get_state()->endpoints();
   boost::asio::io_context _client_ioc;
   resolver _resolver(_client_ioc);
   const auto &_service = _services.begin()->second;

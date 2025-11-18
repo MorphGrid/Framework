@@ -28,7 +28,7 @@ class server : public std::enable_shared_from_this<server> {
  public:
   server();
   void start(unsigned short int port = 0);
-  void serve(shared_tcp_handlers callbacks, unsigned short int port = 0);
+  void serve(shared_tcp_handlers callbacks, unsigned short int port = 0) const;
   shared_state get_state() const;
   shared_of<task_group> get_task_group();
 };

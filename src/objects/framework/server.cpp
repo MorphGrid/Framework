@@ -29,7 +29,6 @@
 #include <framework/signal_handler.hpp>
 #include <framework/state.hpp>
 #include <framework/task_group.hpp>
-#include <framework/tcp_client.hpp>
 #include <framework/tcp_endpoint.hpp>
 #include <framework/tcp_handlers.hpp>
 #include <framework/tcp_listener.hpp>
@@ -84,10 +83,10 @@ void server::start(const unsigned short int port) {
   state_->run();
 }
 
-void server::serve(shared_tcp_handlers callbacks, unsigned short int port) {
+void server::serve(shared_tcp_handlers callbacks, unsigned short int port) const {
   auto _service_id = state_->generate_id();
   const auto _service = std::make_shared<tcp_endpoint>(_service_id, port, callbacks);
-  state_->services().try_emplace(_service_id, _service);
+  state_->endpoints().try_emplace(_service_id, _service);
 
   co_spawn(make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _service),
            task_group_->adapt([](const std::exception_ptr& throwable) noexcept {

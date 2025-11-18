@@ -55,7 +55,7 @@ void state::set_running(const bool running) { running_.store(running, std::memor
 
 map_hash_of<std::string, shared_queue, std::less<>>& state::queues() noexcept { return queues_; }
 
-std::unordered_map<uuid, shared_tcp_endpoint, boost::hash<uuid>>& state::services() noexcept { return services_; }
+std::unordered_map<uuid, shared_tcp_endpoint, boost::hash<uuid>>& state::endpoints() noexcept { return endpoints_; }
 
 shared_router state::get_router() const noexcept { return router_; }
 
@@ -87,13 +87,13 @@ void state::run() noexcept {
 
 boost::asio::io_context& state::ioc() noexcept { return ioc_; }
 
-shared_tcp_endpoint state::get_or_create_sessions(const uuid service_id) {
+shared_tcp_endpoint state::get_endpoint(const uuid id) {
   std::lock_guard lock(sessions_mutex_);
-  return services_[service_id];
+  return endpoints_[id];
 }
 
-void state::remove_service(const uuid service_id) {
+void state::remove_endpoint(const uuid service_id) {
   std::lock_guard lock(sessions_mutex_);
-  services_.erase(service_id);
+  endpoints_.erase(service_id);
 }
 }  // namespace framework
