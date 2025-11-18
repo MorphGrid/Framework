@@ -58,9 +58,6 @@ class state : public std::enable_shared_from_this<state> {
   bool queue_exists(const std::string& name) noexcept;
   void run() noexcept;
   boost::asio::io_context& ioc() noexcept;
-
-  shared_tcp_endpoint get_endpoint(uuid id);
-  void remove_endpoint(uuid service_id);
 };
 }  // namespace framework
 

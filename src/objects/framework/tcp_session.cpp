@@ -40,6 +40,7 @@ async_of<void> notify_error_and_close(const shared_tcp_endpoint service, const s
                                       boost::asio::ip::tcp::socket &socket, const std::exception error) {
   if (service->handlers()->on_error()) co_await service->handlers()->on_error()(service, connection, error);
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
+  service->remove(connection->get_id());
   boost::system::error_code _ec;
   socket.shutdown(boost::asio::socket_base::shutdown_both, _ec);
   socket.close(_ec);
@@ -48,6 +49,7 @@ async_of<void> notify_error_and_close(const shared_tcp_endpoint service, const s
 
 async_of<void> notify_disconnected_if_present(const shared_tcp_endpoint service, const shared_tcp_connection connection) {
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
+  service->remove(connection->get_id());
   co_return;
 }
 }  // namespace

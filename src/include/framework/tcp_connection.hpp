@@ -37,8 +37,6 @@ class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
 
   shared_of<tcp_stream> get_stream() const noexcept;
 
-  shared_tcp_endpoint get_service() const noexcept;
-
   async_of<void> notify_write();
 
   template <typename Buffer>

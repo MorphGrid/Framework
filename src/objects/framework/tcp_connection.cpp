@@ -28,8 +28,6 @@ shared_of<tcp_executor> tcp_connection::get_strand() const noexcept { return str
 
 shared_of<tcp_stream> tcp_connection::get_stream() const noexcept { return stream_; }
 
-shared_tcp_endpoint tcp_connection::get_service() const noexcept { return service_; }
-
 async_of<void> tcp_connection::notify_write() {
   if (service_->handlers()->on_write()) co_await service_->handlers()->on_write()(service_, shared_from_this());
 }

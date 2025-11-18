@@ -86,14 +86,4 @@ void state::run() noexcept {
 }
 
 boost::asio::io_context& state::ioc() noexcept { return ioc_; }
-
-shared_tcp_endpoint state::get_endpoint(const uuid id) {
-  std::lock_guard lock(sessions_mutex_);
-  return endpoints_[id];
-}
-
-void state::remove_endpoint(const uuid service_id) {
-  std::lock_guard lock(sessions_mutex_);
-  endpoints_.erase(service_id);
-}
 }  // namespace framework
