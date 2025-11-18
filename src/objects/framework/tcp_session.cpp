@@ -15,8 +15,8 @@
 #include <framework/errors/tcp/frame_too_large.hpp>
 #include <framework/errors/tcp/on_read_error.hpp>
 #include <framework/tcp_connection.hpp>
+#include <framework/tcp_endpoint.hpp>
 #include <framework/tcp_handlers.hpp>
-#include <framework/tcp_service.hpp>
 #include <framework/tcp_session.hpp>
 
 namespace framework {
@@ -36,23 +36,25 @@ std::uint32_t read_uint32_from_buffer(boost::asio::streambuf &buffer) {
          static_cast<std::uint32_t>(_header[2]) << 8 | static_cast<std::uint32_t>(_header[3]) << 0;
 }
 
-async_of<void> notify_error_and_close(const shared_tcp_service service, const shared_tcp_connection connection,
+async_of<void> notify_error_and_close(const shared_tcp_endpoint service, const shared_tcp_connection connection,
                                       boost::asio::ip::tcp::socket &socket, const std::exception error) {
   if (service->handlers()->on_error()) co_await service->handlers()->on_error()(service, connection, error);
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
+  service->remove(connection->get_id());
   boost::system::error_code _ec;
   socket.shutdown(boost::asio::socket_base::shutdown_both, _ec);
   socket.close(_ec);
   co_return;
 }
 
-async_of<void> notify_disconnected_if_present(const shared_tcp_service service, const shared_tcp_connection connection) {
+async_of<void> notify_disconnected_if_present(const shared_tcp_endpoint service, const shared_tcp_connection connection) {
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
+  service->remove(connection->get_id());
   co_return;
 }
 }  // namespace
 
-async_of<void> tcp_session(const shared_state state, const shared_tcp_service service, const shared_tcp_connection connection) {
+async_of<void> tcp_session(const shared_state state, const shared_tcp_endpoint service, const shared_tcp_connection connection) {
   boost::ignore_unused(state);
 
   const auto _cancel_state = co_await boost::asio::this_coro::cancellation_state;

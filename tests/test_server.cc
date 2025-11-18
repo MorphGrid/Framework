@@ -25,8 +25,8 @@
 #include <framework/support.hpp>
 #include <framework/task_group.hpp>
 #include <framework/tcp_connection.hpp>
+#include <framework/tcp_endpoint.hpp>
 #include <framework/tcp_handlers.hpp>
-#include <framework/tcp_service.hpp>
 
 using namespace framework;
 
@@ -62,23 +62,23 @@ class test_server : public testing::Test {
 
     thread_ = std::make_shared<std::jthread>([this]() {
       server_->serve(std::make_shared<tcp_handlers>(
-          [&](shared_tcp_service, shared_tcp_connection) -> async_of<void> {
+          [&](shared_tcp_endpoint, shared_tcp_connection) -> async_of<void> {
             client_connected_.store(true);
             co_return;
           },
-          [&](shared_tcp_service, shared_tcp_connection) -> async_of<void> {
+          [&](shared_tcp_endpoint, shared_tcp_connection) -> async_of<void> {
             client_accepted_.store(true);
             co_return;
           },
-          [&](shared_tcp_service, shared_tcp_connection, const std::string payload) -> async_of<void> {
+          [&](shared_tcp_endpoint, shared_tcp_connection, const std::string payload) -> async_of<void> {
             client_read_.store(true);
             co_return;
           },
-          [&](shared_tcp_service, shared_tcp_connection) -> async_of<void> {
+          [&](shared_tcp_endpoint, shared_tcp_connection) -> async_of<void> {
             client_write_.store(true);
             co_return;
           },
-          [&](shared_tcp_service, shared_tcp_connection) -> async_of<void> {
+          [&](shared_tcp_endpoint, shared_tcp_connection) -> async_of<void> {
             client_disconnected_.store(true);
             co_return;
           }));
@@ -92,7 +92,7 @@ class test_server : public testing::Test {
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    auto _services = server_->get_state()->services();
+    auto _services = server_->get_state()->endpoints();
     while (true) {
       bool _all_running = true;
       for (const auto &_service : _services | std::views::values) {
@@ -802,8 +802,8 @@ TEST_F(test_server, can_handle_exceptions) {
   ASSERT_EQ(_ec, boost::beast::errc::success);
 }
 
-TEST_F(test_server, basic_tcp_service_check) {
-  const auto _services = server_->get_state()->services();
+TEST_F(test_server, basic_tcp_endpoint_check) {
+  const auto _services = server_->get_state()->endpoints();
   boost::asio::io_context _client_ioc;
   resolver _resolver(_client_ioc);
   const auto &_service = _services.begin()->second;
@@ -815,10 +815,10 @@ TEST_F(test_server, basic_tcp_service_check) {
   std::uint32_t _payload_length = static_cast<std::uint32_t>(_data.size());
 
   unsigned char _header[4];
-  _header[0] = static_cast<unsigned char>((_payload_length >> 24) & 0xFF);
-  _header[1] = static_cast<unsigned char>((_payload_length >> 16) & 0xFF);
-  _header[2] = static_cast<unsigned char>((_payload_length >> 8) & 0xFF);
-  _header[3] = static_cast<unsigned char>((_payload_length >> 0) & 0xFF);
+  _header[0] = static_cast<unsigned char>(_payload_length >> 24 & 0xFF);
+  _header[1] = static_cast<unsigned char>(_payload_length >> 16 & 0xFF);
+  _header[2] = static_cast<unsigned char>(_payload_length >> 8 & 0xFF);
+  _header[3] = static_cast<unsigned char>(_payload_length >> 0 & 0xFF);
 
   std::array<boost::asio::const_buffer, 2> _buffers{boost::asio::buffer(_header, sizeof(_header)), boost::asio::buffer(_data)};
   boost::asio::write(_stream.socket(), _buffers);
@@ -837,8 +837,68 @@ TEST_F(test_server, basic_tcp_service_check) {
   boost::asio::read(_stream.socket(), boost::asio::buffer(_response_header, 4));
 
   std::uint32_t _response_length =
-      (static_cast<std::uint32_t>(_response_header[0]) << 24) | (static_cast<std::uint32_t>(_response_header[1]) << 16) |
-      (static_cast<std::uint32_t>(_response_header[2]) << 8) | (static_cast<std::uint32_t>(_response_header[3]) << 0);
+      static_cast<std::uint32_t>(_response_header[0]) << 24 | static_cast<std::uint32_t>(_response_header[1]) << 16 |
+      static_cast<std::uint32_t>(_response_header[2]) << 8 | static_cast<std::uint32_t>(_response_header[3]) << 0;
+
+  ASSERT_EQ(_response_length, 4u);
+
+  std::vector<char> _response_payload(_response_length);
+  boost::asio::read(_stream.socket(), boost::asio::buffer(_response_payload.data(), _response_payload.size()));
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  ASSERT_EQ(_response_payload[0], 'p');
+  ASSERT_EQ(_response_payload[1], 'o');
+  ASSERT_EQ(_response_payload[2], 'n');
+  ASSERT_EQ(_response_payload[3], 'g');
+  ASSERT_TRUE(client_write_.load());
+
+  boost::beast::error_code _ec;
+  _stream.socket().shutdown(socket::shutdown_both, _ec);
+  ASSERT_EQ(_ec, boost::beast::errc::success);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  ASSERT_TRUE(client_disconnected_.load());
+}
+
+TEST_F(test_server, basic_tcp_endpoint_check2) {
+  const auto _services = server_->get_state()->endpoints();
+  boost::asio::io_context _client_ioc;
+  resolver _resolver(_client_ioc);
+  const auto &_service = _services.begin()->second;
+  const auto _results = _resolver.resolve("127.0.0.1", std::to_string(_service->get_port()));
+  tcp_stream _stream(_client_ioc);
+  _stream.connect(_results);
+
+  std::string _data = "ping";
+  auto _payload_length = static_cast<std::uint32_t>(_data.size());
+
+  unsigned char _header[4];
+  _header[0] = static_cast<unsigned char>(_payload_length >> 24 & 0xFF);
+  _header[1] = static_cast<unsigned char>(_payload_length >> 16 & 0xFF);
+  _header[2] = static_cast<unsigned char>(_payload_length >> 8 & 0xFF);
+  _header[3] = static_cast<unsigned char>(_payload_length >> 0 & 0xFF);
+
+  std::array<boost::asio::const_buffer, 2> _buffers{boost::asio::buffer(_header, sizeof(_header)), boost::asio::buffer(_data)};
+  boost::asio::write(_stream.socket(), _buffers);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  ASSERT_TRUE(client_connected_.load());
+  ASSERT_TRUE(client_accepted_.load());
+  ASSERT_TRUE(client_read_.load());
+
+  const auto _writer = _service->snapshot().front();
+  std::string _pong = "pong";
+  _writer->invoke(_pong);
+
+  unsigned char _response_header[4] = {0, 0, 0, 0};
+  boost::asio::read(_stream.socket(), boost::asio::buffer(_response_header, 4));
+
+  std::uint32_t _response_length =
+      static_cast<std::uint32_t>(_response_header[0]) << 24 | static_cast<std::uint32_t>(_response_header[1]) << 16 |
+      static_cast<std::uint32_t>(_response_header[2]) << 8 | static_cast<std::uint32_t>(_response_header[3]) << 0;
 
   ASSERT_EQ(_response_length, 4u);
 
