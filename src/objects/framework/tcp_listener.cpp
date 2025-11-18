@@ -18,13 +18,13 @@
 #include <framework/state.hpp>
 #include <framework/task_group.hpp>
 #include <framework/tcp_connection.hpp>
+#include <framework/tcp_endpoint.hpp>
 #include <framework/tcp_handlers.hpp>
 #include <framework/tcp_listener.hpp>
-#include <framework/tcp_service.hpp>
 #include <framework/tcp_session.hpp>
 
 namespace framework {
-async_of<void> tcp_listener(task_group &task_group, const shared_state state, shared_tcp_service service) {
+async_of<void> tcp_listener(task_group &task_group, const shared_state state, shared_tcp_endpoint service) {
   auto _cancellation_state = co_await boost::asio::this_coro::cancellation_state;
   const auto _executor = co_await boost::asio::this_coro::executor;
   auto _endpoint = endpoint{boost::asio::ip::make_address("0.0.0.0"), service->get_port()};

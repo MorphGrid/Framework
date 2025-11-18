@@ -29,9 +29,10 @@
 #include <framework/signal_handler.hpp>
 #include <framework/state.hpp>
 #include <framework/task_group.hpp>
+#include <framework/tcp_client.hpp>
+#include <framework/tcp_endpoint.hpp>
 #include <framework/tcp_handlers.hpp>
 #include <framework/tcp_listener.hpp>
-#include <framework/tcp_service.hpp>
 
 namespace framework {
 server::server() : task_group_(std::make_shared<task_group>(state_->ioc().get_executor())) {}
@@ -85,7 +86,7 @@ void server::start(const unsigned short int port) {
 
 void server::serve(shared_tcp_handlers callbacks, unsigned short int port) {
   auto _service_id = state_->generate_id();
-  const auto _service = std::make_shared<tcp_service>(_service_id, port, callbacks);
+  const auto _service = std::make_shared<tcp_endpoint>(_service_id, port, callbacks);
   state_->services().try_emplace(_service_id, _service);
 
   co_spawn(make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _service),
@@ -94,9 +95,9 @@ void server::serve(shared_tcp_handlers callbacks, unsigned short int port) {
                try {
                  std::rethrow_exception(throwable);
                } catch (const std::system_error& e) {
-                 std::cerr << "[tcp_service] Boost error: " << e.what() << "\n";
+                 std::cerr << "[tcp_endpoint] Boost error: " << e.what() << "\n";
                } catch (...) {
-                 std::cerr << "[tcp_service] Unknown exception.\n";
+                 std::cerr << "[tcp_endpoint] Unknown exception.\n";
                }
              }
            }));

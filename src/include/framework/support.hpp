@@ -81,8 +81,8 @@ using shared_tcp_handlers = std::shared_ptr<tcp_handlers>;
 class tcp_connection;
 using shared_tcp_connection = std::shared_ptr<tcp_connection>;
 
-class tcp_service;
-using shared_tcp_service = std::shared_ptr<tcp_service>;
+class tcp_endpoint;
+using shared_tcp_endpoint = std::shared_ptr<tcp_endpoint>;
 
 class validator;
 using shared_validator = std::shared_ptr<validator>;

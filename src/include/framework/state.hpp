@@ -30,7 +30,7 @@ class state : public std::enable_shared_from_this<state> {
   std::mutex queues_mutex_;
   boost::asio::io_context ioc_{static_cast<int>(std::thread::hardware_concurrency())};
   shared_of<boost::mysql::connection_pool> connection_pool_;
-  std::unordered_map<uuid, shared_tcp_service, boost::hash<uuid>> services_;
+  std::unordered_map<uuid, shared_tcp_endpoint, boost::hash<uuid>> services_;
   std::mutex sessions_mutex_;
 
   shared_of<metrics> metrics_ = std::make_shared<metrics>();
@@ -51,7 +51,7 @@ class state : public std::enable_shared_from_this<state> {
   void set_port(unsigned short int port);
   void set_running(bool running);
   map_hash_of<std::string, shared_queue, std::less<>>& queues() noexcept;
-  std::unordered_map<uuid, shared_tcp_service, boost::hash<uuid>>& services() noexcept;
+  std::unordered_map<uuid, shared_tcp_endpoint, boost::hash<uuid>>& services() noexcept;
   shared_router get_router() const noexcept;
   shared_queue get_queue(const std::string& name) noexcept;
   bool remove_queue(const std::string& name) noexcept;
@@ -59,7 +59,7 @@ class state : public std::enable_shared_from_this<state> {
   void run() noexcept;
   boost::asio::io_context& ioc() noexcept;
 
-  shared_tcp_service get_or_create_sessions(uuid service_id);
+  shared_tcp_endpoint get_or_create_sessions(uuid service_id);
   void remove_service(uuid service_id);
 };
 }  // namespace framework

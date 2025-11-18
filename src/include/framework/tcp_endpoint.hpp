@@ -14,13 +14,13 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_TCP_SERVICE_HPP
-#define FRAMEWORK_TCP_SERVICE_HPP
+#ifndef FRAMEWORK_TCP_ENDPOINT_HPP
+#define FRAMEWORK_TCP_ENDPOINT_HPP
 
 #include <framework/support.hpp>
 
 namespace framework {
-class tcp_service : public std::enable_shared_from_this<tcp_service> {
+class tcp_endpoint : public std::enable_shared_from_this<tcp_endpoint> {
   atomic_of<bool> running_{false};
   uuid id_;
   unsigned short int port_;
@@ -29,7 +29,7 @@ class tcp_service : public std::enable_shared_from_this<tcp_service> {
   shared_tcp_handlers callback_;
 
  public:
-  explicit tcp_service(uuid id, unsigned short int port = 0, shared_tcp_handlers handlers = nullptr);
+  explicit tcp_endpoint(uuid id, unsigned short int port = 0, shared_tcp_handlers handlers = nullptr);
   shared_tcp_handlers handlers() const;
   uuid get_id() const;
   unsigned short int get_port() const;
@@ -42,4 +42,4 @@ class tcp_service : public std::enable_shared_from_this<tcp_service> {
 };
 }  // namespace framework
 
-#endif  // FRAMEWORK_TCP_SERVICE_HPP
+#endif  // FRAMEWORK_TCP_ENDPOINT_HPP

@@ -20,7 +20,7 @@
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> tcp_session(shared_state state, shared_tcp_service service, shared_tcp_connection writer);
+async_of<void> tcp_session(shared_state state, shared_tcp_endpoint service, shared_tcp_connection writer);
 }  // namespace framework
 
 #endif  // FRAMEWORK_TCP_SESSION_HPP

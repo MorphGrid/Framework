@@ -23,11 +23,11 @@
 namespace framework {
 class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
   boost::asio::streambuf buffer_;
-  shared_tcp_service service_;
+  shared_tcp_endpoint service_;
   shared_auth auth_ = std::make_shared<auth>();
 
  public:
-  tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_service service);
+  tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_endpoint service);
 
   boost::asio::streambuf &get_buffer();
 
@@ -37,7 +37,7 @@ class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
 
   shared_of<tcp_stream> get_stream() const noexcept;
 
-  shared_tcp_service get_service() const noexcept;
+  shared_tcp_endpoint get_service() const noexcept;
 
   async_of<void> notify_write();
 
