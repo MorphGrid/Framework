@@ -12,8 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#include <framework/tcp_connection.hpp>
 #include <framework/tcp_endpoint.hpp>
-#include <framework/tcp_endpoint_connection.hpp>
 
 namespace framework {
 tcp_endpoint::tcp_endpoint(const uuid id, const unsigned short int port, shared_tcp_endpoint_handlers handlers)

@@ -12,32 +12,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#pragma once
+
+#ifndef FRAMEWORK_TCP_SESSION_HPP
+#define FRAMEWORK_TCP_SESSION_HPP
+
 #include <framework/errors/tcp/frame_too_large.hpp>
 #include <framework/errors/tcp/on_read_error.hpp>
-#include <framework/tcp_service.hpp>
-#include <framework/tcp_service_connection.hpp>
-#include <framework/tcp_service_handlers.hpp>
-#include <framework/tcp_service_session.hpp>
+#include <framework/support.hpp>
 
 namespace framework {
-
-namespace {
 async_of<std::tuple<boost::system::error_code, std::size_t>> read_exactly(boost::asio::ip::tcp::socket &socket,
-                                                                          boost::asio::streambuf &buffer, const std::size_t n) {
-  co_return co_await async_read(socket, buffer, boost::asio::transfer_exactly(n), boost::asio::as_tuple);
-}
+                                                                          boost::asio::streambuf &buffer, std::size_t n);
 
-std::uint32_t read_uint32_from_buffer(boost::asio::streambuf &buffer) {
-  static_assert(HEADER_SIZE == 4, "HEADER_SIZE must be 4");
-  std::istream _input_stream(&buffer);
-  std::array<unsigned char, HEADER_SIZE> _header{};
-  _input_stream.read(reinterpret_cast<char *>(_header.data()), HEADER_SIZE);
-  return static_cast<std::uint32_t>(_header[0]) << 24 | static_cast<std::uint32_t>(_header[1]) << 16 |
-         static_cast<std::uint32_t>(_header[2]) << 8 | static_cast<std::uint32_t>(_header[3]) << 0;
-}
+std::uint32_t read_uint32_from_buffer(boost::asio::streambuf &buffer);
 
-async_of<void> notify_error_and_close(const shared_tcp_service service, const shared_tcp_service_connection connection,
-                                      boost::asio::ip::tcp::socket &socket, const std::exception error) {
+template <class T, class S>
+async_of<void> notify_error_and_close(const T service, const S connection, boost::asio::ip::tcp::socket &socket,
+                                      const std::exception error) {
   if (service->handlers()->on_error()) co_await service->handlers()->on_error()(service, connection, error);
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
   service->remove(connection->get_id());
@@ -47,15 +39,15 @@ async_of<void> notify_error_and_close(const shared_tcp_service service, const sh
   co_return;
 }
 
-async_of<void> notify_disconnected_if_present(const shared_tcp_service service, const shared_tcp_service_connection connection) {
+template <class T, class S>
+async_of<void> notify_disconnected_if_present(const T service, const S connection) {
   if (service->handlers()->on_disconnected()) co_await service->handlers()->on_disconnected()(service, connection);
   service->remove(connection->get_id());
   co_return;
 }
-}  // namespace
 
-async_of<void> tcp_service_session(const shared_state state, const shared_tcp_service service,
-                                   const shared_tcp_service_connection connection) {
+template <class T, class S>
+async_of<void> tcp_session(shared_state state, T service, S connection) {
   boost::ignore_unused(state);
 
   const auto _cancel_state = co_await boost::asio::this_coro::cancellation_state;
@@ -107,3 +99,5 @@ async_of<void> tcp_service_session(const shared_state state, const shared_tcp_se
   _socket.shutdown(boost::asio::socket_base::shutdown_send);
 }
 }  // namespace framework
+
+#endif  // FRAMEWORK_TCP_SESSION_HPP

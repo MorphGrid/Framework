@@ -15,10 +15,10 @@
 #include <framework/state.hpp>
 #include <framework/task_group.hpp>
 #include <framework/tcp_client.hpp>
+#include <framework/tcp_connection.hpp>
 #include <framework/tcp_service.hpp>
-#include <framework/tcp_service_connection.hpp>
 #include <framework/tcp_service_handlers.hpp>
-#include <framework/tcp_service_session.hpp>
+#include <framework/tcp_session.hpp>
 
 namespace framework {
 async_of<void> single_connection(shared_state state, shared_tcp_service service, shared_of<tcp_executor> exec) {
@@ -37,7 +37,7 @@ async_of<void> single_connection(shared_state state, shared_tcp_service service,
 
   auto _stream = std::make_shared<tcp_stream>(std::move(_socket));
   const uuid _session_id = state->generate_id();
-  auto _connection = std::make_shared<tcp_service_connection>(_session_id, exec, _stream, service);
+  auto _connection = std::make_shared<tcp_connection<tcp_service>>(_session_id, exec, _stream, service);
   service->add(_connection);
 
   if (service->handlers() && service->handlers()->on_connect()) {
@@ -47,7 +47,7 @@ async_of<void> single_connection(shared_state state, shared_tcp_service service,
     co_await service->handlers()->on_accepted()(service, _connection);
   }
 
-  co_await tcp_service_session(state, service, _connection);
+  co_await tcp_session<shared_tcp_service, shared_tcp_service_connection>(state, service, _connection);
   if (service->handlers() && service->handlers()->on_disconnected()) {
     try {
       co_await service->handlers()->on_disconnected()(service, _connection);

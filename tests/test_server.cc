@@ -24,11 +24,10 @@
 #include <framework/state.hpp>
 #include <framework/support.hpp>
 #include <framework/task_group.hpp>
+#include <framework/tcp_connection.hpp>
 #include <framework/tcp_endpoint.hpp>
-#include <framework/tcp_endpoint_connection.hpp>
 #include <framework/tcp_endpoint_handlers.hpp>
 #include <framework/tcp_service.hpp>
-#include <framework/tcp_service_connection.hpp>
 #include <framework/tcp_service_handlers.hpp>
 
 using namespace framework;
