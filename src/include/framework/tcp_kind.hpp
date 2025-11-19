@@ -14,25 +14,14 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_SERVER_HPP
-#define FRAMEWORK_SERVER_HPP
-
-#include <framework/support.hpp>
+#ifndef FRAMEWORK_TCP_KIND_HPP
+#define FRAMEWORK_TCP_KIND_HPP
 
 namespace framework {
-class server : public std::enable_shared_from_this<server> {
-  shared_state state_;
-  shared_of<task_group> task_group_;
-
- public:
-  server();
-  void start(unsigned short int port = 0);
-  shared_of<tcp_service> bind(tcp_kind kind, std::string host,
-                              unsigned short int port,
-                              shared_of<tcp_handlers> callbacks) const;
-  shared_state get_state() const;
-  shared_of<task_group> get_task_group();
+enum tcp_kind : int {
+  SERVER = 0,
+  CLIENT = 1,
 };
 }  // namespace framework
 
-#endif  // FRAMEWORK_SERVER_HPP
+#endif  // FRAMEWORK_TCP_KIND_HPP

@@ -79,6 +79,8 @@ class tcp_connection;
 class tcp_handlers;
 class tcp_service;
 
+enum tcp_kind : int;
+
 class validator;
 
 using shared_validator = std::shared_ptr<validator>;

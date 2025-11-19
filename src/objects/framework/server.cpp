@@ -30,12 +30,14 @@
 #include <framework/state.hpp>
 #include <framework/task_group.hpp>
 #include <framework/tcp_client.hpp>
+#include <framework/tcp_kind.hpp>
 #include <framework/tcp_listener.hpp>
 #include <framework/tcp_service.hpp>
 
 namespace framework {
 server::server()
-    : task_group_(std::make_shared<task_group>(state_->ioc().get_executor())) {}
+    : task_group_(std::make_shared<task_group>(state_->ioc().get_executor())),
+      state_(std::make_shared<state>()) {}
 
 void server::start(const unsigned short int port) {
   auto const _address = boost::asio::ip::make_address("0.0.0.0");
@@ -102,40 +104,25 @@ void server::start(const unsigned short int port) {
   state_->run();
 }
 
-shared_of<tcp_service> server::serve(shared_of<tcp_handlers> callbacks,
-                                     unsigned short int port) const {
-  auto _endpoint_id = state_->generate_id();
-  const auto _endpoint =
-      std::make_shared<tcp_service>(_endpoint_id, "0.0.0.0", port, callbacks);
-  state_->endpoints().try_emplace(_endpoint_id, _endpoint);
-
-  co_spawn(
-      make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _endpoint),
-      task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
-        if (throwable) {
-          try {
-            std::rethrow_exception(throwable);
-          } catch (const std::system_error& e) {
-            std::cerr << "[tcp_endpoint] Boost error: " << e.what() << "\n";
-          } catch (...) {
-            std::cerr << "[tcp_endpoint] Unknown exception.\n";
-          }
-        }
-      }));
-
-  return _endpoint;
-}
-
-shared_of<tcp_service> server::connect(shared_of<tcp_handlers> callbacks,
-                                       std::string host,
-                                       unsigned short int port) const {
+shared_of<tcp_service> server::bind(tcp_kind kind, std::string host,
+                                    unsigned short int port,
+                                    shared_of<tcp_handlers> callbacks) const {
   auto _service_id = state_->generate_id();
   const auto _service =
       std::make_shared<tcp_service>(_service_id, host, port, callbacks);
   state_->services().try_emplace(_service_id, _service);
 
-  co_spawn(make_strand(state_->ioc()),
-           tcp_client(*task_group_, state_, _service),
+  std::optional<async_of<void>> _handler;
+  switch (kind) {
+    case SERVER:
+      _handler.emplace(tcp_listener(*task_group_, state_, _service));
+      break;
+    case CLIENT:
+      _handler.emplace(tcp_client(*task_group_, state_, _service));
+      break;
+  }
+
+  co_spawn(make_strand(state_->ioc()), std::move(_handler.value()),
            task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
              if (throwable) {
                try {
