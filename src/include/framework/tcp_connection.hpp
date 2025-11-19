@@ -21,27 +21,31 @@
 #include <framework/support.hpp>
 
 namespace framework {
-class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
+template <typename ServiceType>
+class tcp_connection : public std::enable_shared_from_this<tcp_connection<ServiceType>> {
   boost::asio::streambuf buffer_;
-  shared_tcp_endpoint service_;
+  shared_of<ServiceType> service_;
   shared_auth auth_ = std::make_shared<auth>();
 
  public:
-  tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_endpoint service);
+  tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_of<ServiceType> service)
+      : id_(id), strand_(strand), stream_(stream), service_(std::move(service)) {}
 
-  boost::asio::streambuf &get_buffer();
+  boost::asio::streambuf &get_buffer() { return buffer_; }
 
-  uuid get_id() const noexcept;
+  uuid get_id() const noexcept { return id_; }
 
-  shared_of<tcp_executor> get_strand() const noexcept;
+  shared_of<tcp_executor> get_strand() const noexcept { return strand_; }
 
-  shared_of<tcp_stream> get_stream() const noexcept;
+  shared_of<tcp_stream> get_stream() const noexcept { return stream_; }
 
-  async_of<void> notify_write();
+  async_of<void> notify_write() {
+    if (service_->handlers()->on_write()) co_await service_->handlers()->on_write()(service_, this->shared_from_this());
+  }
 
   template <typename Buffer>
   void invoke(Buffer &&buf) {
-    auto _self = shared_from_this();
+    auto _self = this->shared_from_this();
     co_spawn(
         *strand_,
         [_self, _buf = std::forward<Buffer>(buf)]() mutable -> async_of<void> {

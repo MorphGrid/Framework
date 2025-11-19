@@ -14,22 +14,23 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_TCP_HANDLERS_HPP
-#define FRAMEWORK_TCP_HANDLERS_HPP
+#ifndef FRAMEWORK_TCP_SERVICE_HANDLERS_HPP
+#define FRAMEWORK_TCP_SERVICE_HANDLERS_HPP
 
 #include <framework/support.hpp>
 
 namespace framework {
-class tcp_handlers : public std::enable_shared_from_this<tcp_handlers> {
+class tcp_service_handlers : public std::enable_shared_from_this<tcp_service_handlers> {
  public:
-  using handler_type = std::function<async_of<void>(shared_tcp_endpoint service, shared_tcp_connection connection)>;
+  using handler_type = std::function<async_of<void>(shared_tcp_service service, shared_tcp_service_connection connection)>;
   using read_handler_type =
-      std::function<async_of<void>(shared_tcp_endpoint service, shared_tcp_connection connection, std::string payload)>;
+      std::function<async_of<void>(shared_tcp_service service, shared_tcp_service_connection connection, std::string payload)>;
   using error_handler_type =
-      std::function<async_of<void>(shared_tcp_endpoint service, shared_tcp_connection connection, const std::exception &exception)>;
+      std::function<async_of<void>(shared_tcp_service service, shared_tcp_service_connection connection, const std::exception &exception)>;
 
-  explicit tcp_handlers(handler_type on_connect = nullptr, handler_type on_accepted = nullptr, read_handler_type on_read = nullptr,
-                        handler_type on_write = nullptr, handler_type on_disconnected = nullptr, error_handler_type on_error = nullptr);
+  explicit tcp_service_handlers(handler_type on_connect = nullptr, handler_type on_accepted = nullptr, read_handler_type on_read = nullptr,
+                                handler_type on_write = nullptr, handler_type on_disconnected = nullptr,
+                                error_handler_type on_error = nullptr);
 
   handler_type on_connect() const;
   handler_type on_accepted() const;
@@ -48,4 +49,4 @@ class tcp_handlers : public std::enable_shared_from_this<tcp_handlers> {
 };
 }  // namespace framework
 
-#endif  // FRAMEWORK_TCP_HANDLERS_HPP
+#endif  // FRAMEWORK_TCP_SERVICE_HANDLERS_HPP

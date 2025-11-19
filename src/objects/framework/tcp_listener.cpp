@@ -19,7 +19,7 @@
 #include <framework/task_group.hpp>
 #include <framework/tcp_connection.hpp>
 #include <framework/tcp_endpoint.hpp>
-#include <framework/tcp_handlers.hpp>
+#include <framework/tcp_endpoint_handlers.hpp>
 #include <framework/tcp_listener.hpp>
 #include <framework/tcp_session.hpp>
 
@@ -41,7 +41,7 @@ async_of<void> tcp_listener(task_group &task_group, const shared_state state, sh
 
     auto _session_id = state->generate_id();
     auto _stream = std::make_shared<tcp_stream>(std::move(_socket));
-    auto _connection = std::make_shared<tcp_connection>(_session_id, _socket_executor, _stream, service);
+    auto _connection = std::make_shared<tcp_connection<tcp_endpoint>>(_session_id, _socket_executor, _stream, service);
     service->add(_connection);
 
     if (service->handlers()->on_connect()) co_await service->handlers()->on_connect()(service, _connection);
@@ -53,7 +53,7 @@ async_of<void> tcp_listener(task_group &task_group, const shared_state state, sh
 
     if (_ec) throw boost::system::system_error{_ec};
 
-    co_spawn(*_socket_executor, tcp_session(state, service, _connection),
+    co_spawn(*_socket_executor, tcp_session<shared_tcp_endpoint, shared_tcp_endpoint_connection>(state, service, _connection),
              task_group.adapt([](const std::exception_ptr &throwable) noexcept {
                if (throwable) {
                  try {

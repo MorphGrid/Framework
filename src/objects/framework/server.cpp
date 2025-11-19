@@ -29,9 +29,10 @@
 #include <framework/signal_handler.hpp>
 #include <framework/state.hpp>
 #include <framework/task_group.hpp>
+#include <framework/tcp_client.hpp>
 #include <framework/tcp_endpoint.hpp>
-#include <framework/tcp_handlers.hpp>
 #include <framework/tcp_listener.hpp>
+#include <framework/tcp_service.hpp>
 
 namespace framework {
 server::server() : task_group_(std::make_shared<task_group>(state_->ioc().get_executor())) {}
@@ -83,12 +84,12 @@ void server::start(const unsigned short int port) {
   state_->run();
 }
 
-void server::serve(shared_tcp_handlers callbacks, unsigned short int port) const {
-  auto _service_id = state_->generate_id();
-  const auto _service = std::make_shared<tcp_endpoint>(_service_id, port, callbacks);
-  state_->endpoints().try_emplace(_service_id, _service);
+shared_tcp_endpoint server::serve(shared_tcp_endpoint_handlers callbacks, unsigned short int port) const {
+  auto _endpoint_id = state_->generate_id();
+  const auto _endpoint = std::make_shared<tcp_endpoint>(_endpoint_id, port, callbacks);
+  state_->endpoints().try_emplace(_endpoint_id, _endpoint);
 
-  co_spawn(make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _service),
+  co_spawn(make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _endpoint),
            task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
              if (throwable) {
                try {
@@ -100,6 +101,29 @@ void server::serve(shared_tcp_handlers callbacks, unsigned short int port) const
                }
              }
            }));
+
+  return _endpoint;
+}
+
+shared_tcp_service server::connect(shared_tcp_service_handlers callbacks, std::string host, unsigned short int port) const {
+  auto _service_id = state_->generate_id();
+  const auto _service = std::make_shared<tcp_service>(_service_id, host, port, callbacks);
+  state_->services().try_emplace(_service_id, _service);
+
+  co_spawn(make_strand(state_->ioc()), tcp_client(*task_group_, state_, _service),
+           task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
+             if (throwable) {
+               try {
+                 std::rethrow_exception(throwable);
+               } catch (const std::system_error& e) {
+                 std::cerr << "[tcp_client] Boost error: " << e.what() << "\n";
+               } catch (...) {
+                 std::cerr << "[tcp_client] Unknown exception.\n";
+               }
+             }
+           }));
+
+  return _service;
 }
 
 shared_state server::get_state() const { return state_; }
