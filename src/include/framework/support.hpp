@@ -78,25 +78,15 @@ using shared_jwt = std::shared_ptr<jwt>;
 template <class ServiceType>
 class tcp_connection;
 
-class tcp_endpoint_handlers;
-using shared_tcp_endpoint_handlers = std::shared_ptr<tcp_endpoint_handlers>;
+template <typename Service, typename Connection>
+class tcp_handlers;
 
 class tcp_endpoint;
-using shared_tcp_endpoint = std::shared_ptr<tcp_endpoint>;
-
-using tcp_endpoint_connection = tcp_connection<tcp_endpoint>;
-using shared_tcp_endpoint_connection = std::shared_ptr<tcp_endpoint_connection>;
-
-class tcp_service_handlers;
-using shared_tcp_service_handlers = std::shared_ptr<tcp_service_handlers>;
 
 class tcp_service;
-using shared_tcp_service = std::shared_ptr<tcp_service>;
-
-using tcp_service_connection = tcp_connection<tcp_service>;
-using shared_tcp_service_connection = std::shared_ptr<tcp_service_connection>;
 
 class validator;
+
 using shared_validator = std::shared_ptr<validator>;
 
 class auth;

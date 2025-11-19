@@ -28,8 +28,10 @@ class server : public std::enable_shared_from_this<server> {
  public:
   server();
   void start(unsigned short int port = 0);
-  shared_tcp_endpoint serve(shared_tcp_endpoint_handlers callbacks, unsigned short int port = 0) const;
-  shared_tcp_service connect(shared_tcp_service_handlers callbacks, std::string host, unsigned short int port = 0) const;
+  shared_of<tcp_endpoint> serve(shared_of<tcp_handlers<tcp_endpoint, tcp_connection<tcp_endpoint>>> callbacks,
+                                unsigned short int port = 0) const;
+  shared_of<tcp_service> connect(shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> callbacks, std::string host,
+                                 unsigned short int port = 0) const;
   shared_state get_state() const;
   shared_of<task_group> get_task_group();
 };

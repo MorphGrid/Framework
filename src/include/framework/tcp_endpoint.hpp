@@ -25,20 +25,21 @@ class tcp_endpoint : public std::enable_shared_from_this<tcp_endpoint> {
   uuid id_;
   unsigned short int port_;
   std::mutex mutex_;
-  vector_of<shared_tcp_endpoint_connection> writers_;
-  shared_tcp_endpoint_handlers callback_;
+  vector_of<shared_of<tcp_connection<tcp_endpoint>>> writers_;
+  shared_of<tcp_handlers<tcp_endpoint, tcp_connection<tcp_endpoint>>> callback_;
 
  public:
-  explicit tcp_endpoint(uuid id, unsigned short int port = 0, shared_tcp_endpoint_handlers handlers = nullptr);
-  shared_tcp_endpoint_handlers handlers() const;
+  explicit tcp_endpoint(uuid id, unsigned short int port = 0,
+                        shared_of<tcp_handlers<tcp_endpoint, tcp_connection<tcp_endpoint>>> handlers = nullptr);
+  shared_of<tcp_handlers<tcp_endpoint, tcp_connection<tcp_endpoint>>> handlers() const;
   uuid get_id() const;
   unsigned short int get_port() const;
   void set_port(unsigned short int port);
   bool get_running() const;
   void set_running(bool running);
-  void add(shared_tcp_endpoint_connection writer);
+  void add(shared_of<tcp_connection<tcp_endpoint>> writer);
   void remove(uuid session_id);
-  vector_of<shared_tcp_endpoint_connection> snapshot();
+  vector_of<shared_of<tcp_connection<tcp_endpoint>>> snapshot();
 };
 }  // namespace framework
 
