@@ -15,7 +15,8 @@
 #include <framework/task.hpp>
 
 namespace framework {
-task::task(handler_type callback) : callback_(std::make_shared<handler_type>(std::move(callback))) {}
+task::task(handler_type callback)
+    : callback_(std::make_shared<handler_type>(std::move(callback))) {}
 
 uuid task::get_id() const noexcept { return id_; }
 

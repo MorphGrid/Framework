@@ -24,10 +24,13 @@ shared_router router::add(shared_route route) {
   return shared_from_this();
 }
 
-std::tuple<params_type, shared_route> router::find(const http_verb verb, const std::string &path) const {
+std::tuple<params_type, shared_route> router::find(
+    const http_verb verb, const std::string &path) const {
   for (auto const &_route : get_routes()) {
     if (auto [_matched, _params] = _route->match(path);
-        std::ranges::find(_route->get_verbs(), verb) != _route->get_verbs().end() && _matched) {
+        std::ranges::find(_route->get_verbs(), verb) !=
+            _route->get_verbs().end() &&
+        _matched) {
       return std::make_tuple(_params, _route);
     }
   }

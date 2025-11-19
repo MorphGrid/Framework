@@ -17,11 +17,15 @@
 #include <framework/tcp_service.hpp>
 
 namespace framework {
-tcp_service::tcp_service(const uuid id, std::string host, const unsigned short int port,
-                         shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> handlers)
-    : id_(id), host_(std::move(host)), port_(port), callback_(std::move(handlers)) {}
+tcp_service::tcp_service(const uuid id, std::string host,
+                         const unsigned short int port,
+                         shared_of<tcp_handlers> handlers)
+    : id_(id),
+      host_(std::move(host)),
+      port_(port),
+      callback_(std::move(handlers)) {}
 
-shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> tcp_service::handlers() const { return callback_; }
+shared_of<tcp_handlers> tcp_service::handlers() const { return callback_; }
 
 uuid tcp_service::get_id() const { return id_; }
 
@@ -31,21 +35,27 @@ unsigned short int tcp_service::get_port() const { return port_; }
 
 void tcp_service::set_port(const unsigned short int port) { port_ = port; }
 
-bool tcp_service::get_running() const { return running_.load(std::memory_order_acquire); }
+bool tcp_service::get_running() const {
+  return running_.load(std::memory_order_acquire);
+}
 
-void tcp_service::set_running(const bool running) { running_.store(running, std::memory_order_release); }
+void tcp_service::set_running(const bool running) {
+  running_.store(running, std::memory_order_release);
+}
 
-void tcp_service::add(shared_of<tcp_connection<tcp_service>> writer) {
+void tcp_service::add(shared_of<tcp_connection> writer) {
   std::lock_guard lock(mutex_);
   writers_.emplace_back(std::move(writer));
 }
 
 void tcp_service::remove(uuid session_id) {
   std::lock_guard lock(mutex_);
-  std::erase_if(writers_, [&session_id](const shared_of<tcp_connection<tcp_service>> &w) { return w->get_id() == session_id; });
+  std::erase_if(writers_, [&session_id](const shared_of<tcp_connection> &w) {
+    return w->get_id() == session_id;
+  });
 }
 
-vector_of<shared_of<tcp_connection<tcp_service>>> tcp_service::snapshot() {
+vector_of<shared_of<tcp_connection>> tcp_service::snapshot() {
   std::lock_guard lock(mutex_);
   return writers_;
 }
@@ -86,7 +96,8 @@ void tcp_service::stop_clients() {
             *_connection->get_strand(),
             [_service, _connection_copied]() -> async_of<void> {
               try {
-                co_await _service->handlers()->on_disconnected()(_service, _connection_copied);
+                co_await _service->handlers()->on_disconnected()(
+                    _service, _connection_copied);
               } catch (...) {
               }
               co_return;

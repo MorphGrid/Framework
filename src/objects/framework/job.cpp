@@ -17,19 +17,28 @@
 #include <framework/task.hpp>
 
 namespace framework {
-job::job(const shared_task& task, object data) : task_(task), data_(std::move(data)) {}
+job::job(const shared_task& task, object data)
+    : task_(task), data_(std::move(data)) {}
 
 uuid job::id() const noexcept { return id_; }
 
 shared_task job::get_task() const noexcept { return task_; }
 
-bool job::started() const noexcept { return started_.load(std::memory_order_acquire); }
+bool job::started() const noexcept {
+  return started_.load(std::memory_order_acquire);
+}
 
-bool job::failed() const noexcept { return failed_.load(std::memory_order_acquire); }
+bool job::failed() const noexcept {
+  return failed_.load(std::memory_order_acquire);
+}
 
-bool job::finished() const noexcept { return finished_.load(std::memory_order_acquire); }
+bool job::finished() const noexcept {
+  return finished_.load(std::memory_order_acquire);
+}
 
-bool job::cancelled() const noexcept { return cancelled_.load(std::memory_order_acquire); }
+bool job::cancelled() const noexcept {
+  return cancelled_.load(std::memory_order_acquire);
+}
 
 void job::mark_as_started() noexcept {
   started_.store(true, std::memory_order_release);

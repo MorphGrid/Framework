@@ -27,32 +27,43 @@ vector_of<http_verb> attempt_controller::verbs() {
 
 shared_controller attempt_controller::make() {
   return std::make_shared<controller>(
-      [](const shared_state state, const request_type request, const params_type params,
+      [](const shared_state state, const request_type request,
+         const params_type params,
          const shared_auth auth) -> async_of<response_type> {
         auto _body = boost::json::parse(request.body());
         std::string _email{_body.as_object().at("email").as_string()};
         std::string _password{_body.as_object().at("password").as_string()};
 
         boost::mysql::pooled_connection _connection =
-            co_await state->get_connection_pool()->async_get_connection(boost::asio::cancel_after(std::chrono::seconds(30)));
+            co_await state->get_connection_pool()->async_get_connection(
+                boost::asio::cancel_after(std::chrono::seconds(30)));
 
         boost::mysql::results _result;
 
-        co_await _connection->async_execute(boost::mysql::with_params("SELECT id, password FROM users WHERE email = {}", _email), _result);
+        co_await _connection->async_execute(
+            boost::mysql::with_params(
+                "SELECT id, password FROM users WHERE email = {}", _email),
+            _result);
 
         if (_result.rows().empty()) {
-          response_type _response{http_status::unprocessable_entity, request.version()};
-          _response.body() = serialize(
-              object({{"message", "The given data was invalid."}, {"errors", {{"email", array{"The email isn't registered."}}}}}));
+          response_type _response{http_status::unprocessable_entity,
+                                  request.version()};
+          _response.body() = serialize(object(
+              {{"message", "The given data was invalid."},
+               {"errors", {{"email", array{"The email isn't registered."}}}}}));
           _response.prepare_payload();
           _connection.return_without_reset();
           co_return _response;
         }
 
-        if (std::string _hash{_result.rows().at(0).at(1).as_string()}; !password_validator(_password, _hash)) {
-          response_type _response{http_status::unprocessable_entity, request.version()};
+        if (std::string _hash{_result.rows().at(0).at(1).as_string()};
+            !password_validator(_password, _hash)) {
+          response_type _response{http_status::unprocessable_entity,
+                                  request.version()};
           _response.body() = serialize(
-              object({{"message", "The given data was invalid."}, {"errors", {{"password", array{"The password is incorrect."}}}}}));
+              object({{"message", "The given data was invalid."},
+                      {"errors",
+                       {{"password", array{"The password is incorrect."}}}}}));
           _response.prepare_payload();
           _connection.return_without_reset();
           co_return _response;

@@ -28,7 +28,8 @@ class route : public std::enable_shared_from_this<route> {
   vector_of<std::string> parameters_;
 
  public:
-  explicit route(vector_of<http_verb> verbs, std::string signature, const shared_controller &controller);
+  explicit route(vector_of<http_verb> verbs, std::string signature,
+                 const shared_controller &controller);
   void compile();
   shared_of<std::regex> &get_expression();
   shared_controller &get_controller();

@@ -26,7 +26,8 @@ class router : public std::enable_shared_from_this<router> {
  public:
   vector_of<shared_route> get_routes() const;
   shared_router add(shared_route route);
-  tuple_of<params_type, shared_route> find(http_verb verb, const std::string &path) const;
+  tuple_of<params_type, shared_route> find(http_verb verb,
+                                           const std::string &path) const;
   vector_of<std::string> methods_of(const std::string &path) const;
 };
 }  // namespace framework

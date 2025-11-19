@@ -20,8 +20,9 @@ using namespace framework;
 
 TEST(test_validator, can_validate) {
   const map_of<std::string, std::string> _rules = {
-      {"*", "is_object"},      {"uuid", "is_uuid"},     {"string", "is_string"},
-      {"string", "confirmed"}, {"number", "is_number"}, {"array_of_strings", "is_array_of_strings"},
+      {"*", "is_object"},      {"uuid", "is_uuid"},
+      {"string", "is_string"}, {"string", "confirmed"},
+      {"number", "is_number"}, {"array_of_strings", "is_array_of_strings"},
       {"object", "is_object"},
   };
 
@@ -35,8 +36,9 @@ TEST(test_validator, can_validate) {
 
 TEST(test_validator, fails_on_missing) {
   const map_of<std::string, std::string> _rules = {
-      {"*", "is_object"},      {"uuid", "is_uuid"},      {"string", "is_string"},
-      {"string", "confirmed"}, {"number", "is_number"},  {"array_of_strings", "is_array_of_strings"},
+      {"*", "is_object"},      {"uuid", "is_uuid"},
+      {"string", "is_string"}, {"string", "confirmed"},
+      {"number", "is_number"}, {"array_of_strings", "is_array_of_strings"},
       {"object", "is_object"}, {"optional", "nullable"},
   };
 
@@ -81,7 +83,8 @@ TEST(test_validator, fails_on_error) {
 }
 
 TEST(test_validator, reject_primitives_different_than_object) {
-  const map_of<std::string, std::string> _rules = {{"*", "is_object"}, {"id", "is_uuid"}};
+  const map_of<std::string, std::string> _rules = {{"*", "is_object"},
+                                                   {"id", "is_uuid"}};
 
   const std::string _input = R"([1, 2, 3])";
   const auto _value = boost::json::parse(_input);
@@ -91,7 +94,8 @@ TEST(test_validator, reject_primitives_different_than_object) {
 }
 
 TEST(test_validator, validate_null_values) {
-  const map_of<std::string, std::string> _rules = {{"*", "is_object"}, {"comment", "nullable"}};
+  const map_of<std::string, std::string> _rules = {{"*", "is_object"},
+                                                   {"comment", "nullable"}};
 
   const std::string _input = R"({"comment": null})";
   const auto _value = boost::json::parse(_input);
@@ -101,7 +105,8 @@ TEST(test_validator, validate_null_values) {
 }
 
 TEST(test_validator, validate_null_missing_values) {
-  const map_of<std::string, std::string> _rules = {{"*", "is_object"}, {"note", "nullable"}};
+  const map_of<std::string, std::string> _rules = {{"*", "is_object"},
+                                                   {"note", "nullable"}};
 
   const std::string _input = R"({})";
   const auto _value = boost::json::parse(_input);

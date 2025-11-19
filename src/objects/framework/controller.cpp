@@ -15,7 +15,8 @@
 #include <framework/controller.hpp>
 
 namespace framework {
-controller::controller(controller_callback_type callback, controller_config config)
+controller::controller(controller_callback_type callback,
+                       controller_config config)
     : callback_(std::move(callback)), config_(std::move(config)) {}
 
 controller_callback_type& controller::callback() noexcept { return callback_; }

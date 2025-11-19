@@ -19,7 +19,10 @@
 #include <framework/worker.hpp>
 
 namespace framework {
-queue::queue(strand_of<boost::asio::io_context::executor_type> strand) : strand_(std::move(strand)) { prepare(); }
+queue::queue(strand_of<boost::asio::io_context::executor_type> strand)
+    : strand_(std::move(strand)) {
+  prepare();
+}
 
 uuid queue::get_id() const noexcept { return id_; }
 
@@ -29,7 +32,9 @@ map_of<uuid, shared_worker> queue::get_workers() const { return workers_; }
 
 map_of<uuid, shared_job> queue::get_jobs() const { return jobs_; }
 
-map_hash_of<std::string, shared_task, std::less<>> queue::get_tasks() const { return tasks_; }
+map_hash_of<std::string, shared_task, std::less<>> queue::get_tasks() const {
+  return tasks_;
+}
 
 std::size_t queue::number_of_jobs() const { return jobs_.size(); }
 
@@ -66,7 +71,8 @@ void queue::prepare() { upscale(); }
 void queue::upscale(const std::size_t to) {
   std::scoped_lock _lock(workers_mutex_);
   while (number_of_workers() != to) {
-    auto _worker = std::make_shared<worker>(make_strand(strand_.get_inner_executor()));
+    auto _worker =
+        std::make_shared<worker>(make_strand(strand_.get_inner_executor()));
     workers_.try_emplace(_worker->id(), _worker);
   }
 }
@@ -86,9 +92,11 @@ void queue::dispatch(const shared_job& job) {
 
 shared_worker queue::get_worker() {
   std::scoped_lock _lock(workers_mutex_);
-  const auto _iterator = std::ranges::min_element(workers_ | std::views::values, [](const shared_worker& a, const shared_worker& b) {
-    return a->number_of_tasks() < b->number_of_tasks();
-  });
+  const auto _iterator = std::ranges::min_element(
+      workers_ | std::views::values,
+      [](const shared_worker& a, const shared_worker& b) {
+        return a->number_of_tasks() < b->number_of_tasks();
+      });
   return *_iterator;
 }
 

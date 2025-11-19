@@ -16,11 +16,14 @@
 #include <framework/worker.hpp>
 
 namespace framework {
-worker::worker(strand_of<boost::asio::io_context::executor_type> strand) : strand_(std::move(strand)) {}
+worker::worker(strand_of<boost::asio::io_context::executor_type> strand)
+    : strand_(std::move(strand)) {}
 
 const uuid& worker::id() const noexcept { return id_; }
 
-std::uint64_t worker::number_of_tasks() const noexcept { return number_of_tasks_.load(std::memory_order_acquire); }
+std::uint64_t worker::number_of_tasks() const noexcept {
+  return number_of_tasks_.load(std::memory_order_acquire);
+}
 
 async_of<void> worker::run(const shared_job job) {
   co_await job->run();

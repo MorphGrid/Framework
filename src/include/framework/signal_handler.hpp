@@ -14,7 +14,8 @@ inline async_of<void> signal_handler(task_group &task_group) {
   if (_sig == SIGINT) {
     task_group.emit(boost::asio::cancellation_type::total);
 
-    auto [ec] = co_await task_group.async_wait(boost::asio::as_tuple(boost::asio::cancel_after(std::chrono::seconds{10})));
+    auto [ec] = co_await task_group.async_wait(boost::asio::as_tuple(
+        boost::asio::cancel_after(std::chrono::seconds{10})));
 
     if (ec == boost::asio::error::operation_aborted)  // Timeout occurred
     {
@@ -23,7 +24,9 @@ inline async_of<void> signal_handler(task_group &task_group) {
     }
 
   } else {
-    boost::asio::query(_executor.get_inner_executor(), boost::asio::execution::context).stop();
+    boost::asio::query(_executor.get_inner_executor(),
+                       boost::asio::execution::context)
+        .stop();
   }
 }
 }  // namespace framework

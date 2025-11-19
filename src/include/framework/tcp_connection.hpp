@@ -17,32 +17,22 @@
 #ifndef FRAMEWORK_TCP_CONNECTION_HPP
 #define FRAMEWORK_TCP_CONNECTION_HPP
 
-#include <framework/auth.hpp>
 #include <framework/support.hpp>
 
 namespace framework {
-template <typename ServiceType>
-class tcp_connection : public std::enable_shared_from_this<tcp_connection<ServiceType>> {
+class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
   boost::asio::streambuf buffer_;
-  shared_of<ServiceType> service_;
-  shared_auth auth_ = std::make_shared<auth>();
+  shared_of<tcp_service> service_;
+  shared_auth auth_;
 
  public:
-  tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_of<ServiceType> service)
-      : id_(id), strand_(strand), stream_(stream), service_(std::move(service)) {}
-
-  boost::asio::streambuf &get_buffer() { return buffer_; }
-
-  uuid get_id() const noexcept { return id_; }
-
-  shared_of<tcp_executor> get_strand() const noexcept { return strand_; }
-
-  shared_of<tcp_stream> get_stream() const noexcept { return stream_; }
-
-  async_of<void> notify_write() {
-    if (service_->handlers()->on_write()) co_await service_->handlers()->on_write()(service_, this->shared_from_this());
-  }
-
+  tcp_connection(uuid id, shared_of<tcp_executor> strand,
+                 shared_of<tcp_stream> stream, shared_of<tcp_service> service);
+  boost::asio::streambuf &get_buffer();
+  uuid get_id() const noexcept;
+  shared_of<tcp_executor> get_strand() const noexcept;
+  shared_of<tcp_stream> get_stream() const noexcept;
+  async_of<void> notify_write();
   template <typename Buffer>
   void invoke(Buffer &&buf) {
     auto _self = this->shared_from_this();
@@ -50,7 +40,8 @@ class tcp_connection : public std::enable_shared_from_this<tcp_connection<Servic
         *strand_,
         [_self, _buf = std::forward<Buffer>(buf)]() mutable -> async_of<void> {
           auto _payload_buffer = boost::asio::buffer(_buf);
-          const std::size_t _payload_size = boost::asio::buffer_size(_payload_buffer);
+          const std::size_t _payload_size =
+              boost::asio::buffer_size(_payload_buffer);
 
           if (_payload_size > MAX_FRAME_SIZE) {
             std::cerr << "Payload size is too big" << std::endl;
@@ -65,9 +56,11 @@ class tcp_connection : public std::enable_shared_from_this<tcp_connection<Servic
           _header[2] = static_cast<unsigned char>(_length >> 8 & 0xFF);
           _header[3] = static_cast<unsigned char>(_length >> 0 & 0xFF);
 
-          std::array<boost::asio::const_buffer, 2> _buffers{boost::asio::buffer(_header), _payload_buffer};
+          std::array<boost::asio::const_buffer, 2> _buffers{
+              boost::asio::buffer(_header), _payload_buffer};
 
-          co_await boost::asio::async_write(*_self->stream_, _buffers, boost::asio::as_tuple);
+          co_await boost::asio::async_write(*_self->stream_, _buffers,
+                                            boost::asio::as_tuple);
           co_await _self->notify_write();
           co_return;
         },

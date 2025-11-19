@@ -16,14 +16,18 @@
 #include <framework/route.hpp>
 
 namespace framework {
-route::route(vector_of<http_verb> verbs, std::string signature, const shared_controller &controller)
-    : signature_(std::move(signature)), controller_(controller), verbs_(std::move(verbs)) {
+route::route(vector_of<http_verb> verbs, std::string signature,
+             const shared_controller &controller)
+    : signature_(std::move(signature)),
+      controller_(controller),
+      verbs_(std::move(verbs)) {
   compile();
 }
 
 void route::compile() {
   std::size_t _open = signature_.find('{');
-  if (std::size_t _close = signature_.find('}'); _open == std::string::npos && _close == std::string::npos) {
+  if (std::size_t _close = signature_.find('}');
+      _open == std::string::npos && _close == std::string::npos) {
     expression_ = std::make_shared<std::regex>(signature_);
   } else {
     std::string _regex;
@@ -33,7 +37,8 @@ void route::compile() {
       _regex.append(signature_.substr(_position, _open - _position));
       std::string _value{signature_.substr(_open + 1, _close - _open - 1)};
 
-      if (std::ranges::find(parameters_, _value) != parameters_.end()) throw errors::parse_error("Route parameters is duplicated.");
+      if (std::ranges::find(parameters_, _value) != parameters_.end())
+        throw errors::parse_error("Route parameters is duplicated.");
 
       _regex.append(R"(([a-zA-Z0-9\-_]+))");
       parameters_.emplace_back(_value);
@@ -43,7 +48,9 @@ void route::compile() {
       _close = signature_.find('}', _open);
     }
 
-    if (_position != signature_.size()) _regex.append(signature_.substr(_position, signature_.size() - _position));
+    if (_position != signature_.size())
+      _regex.append(
+          signature_.substr(_position, signature_.size() - _position));
 
     expression_ = std::make_shared<std::regex>(_regex);
   }

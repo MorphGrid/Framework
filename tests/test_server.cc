@@ -25,7 +25,6 @@
 #include <framework/support.hpp>
 #include <framework/task_group.hpp>
 #include <framework/tcp_connection.hpp>
-#include <framework/tcp_endpoint.hpp>
 #include <framework/tcp_handlers.hpp>
 #include <framework/tcp_service.hpp>
 
@@ -53,13 +52,15 @@ class test_server : public testing::Test {
             http_verb::get,
         },
         "/system_error",
-        std::make_shared<controller>([](const shared_state state, const request_type request, const params_type params,
-                                        const shared_auth auth) -> async_of<response_type> {
-          response_empty_type _response{http_status::ok, request.version()};
-          _response.prepare_payload();
-          throw std::system_error();
-          co_return _response;
-        })));
+        std::make_shared<controller>(
+            [](const shared_state state, const request_type request,
+               const params_type params,
+               const shared_auth auth) -> async_of<response_type> {
+              response_empty_type _response{http_status::ok, request.version()};
+              _response.prepare_payload();
+              throw std::system_error();
+              co_return _response;
+            })));
 
     thread_ = std::make_shared<std::jthread>([this]() {
       server_->start();
@@ -88,7 +89,8 @@ TEST_F(test_server, can_handle_http_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -116,7 +118,8 @@ TEST_F(test_server, can_handle_unauthorized_requests) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -144,7 +147,8 @@ TEST_F(test_server, can_handle_post_auth_attempt_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -174,8 +178,10 @@ TEST_F(test_server, can_handle_post_auth_attempt_request) {
   ASSERT_TRUE(_result.as_object().contains("data"));
   ASSERT_TRUE(_result.as_object().at("data").is_object());
   ASSERT_TRUE(_result.as_object().at("data").as_object().contains("token"));
-  ASSERT_TRUE(_result.as_object().at("data").as_object().at("token").is_string());
-  std::string _auth_id{_result.as_object().at("data").as_object().at("token").as_string()};
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_object().at("token").is_string());
+  std::string _auth_id{
+      _result.as_object().at("data").as_object().at("token").as_string()};
 
   boost::beast::error_code _ec;
   _stream.socket().shutdown(socket::shutdown_both, _ec);
@@ -187,7 +193,8 @@ TEST_F(test_server, can_handle_post_auth_attempt_request_on_wrong_email) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -218,10 +225,30 @@ TEST_F(test_server, can_handle_post_auth_attempt_request_on_wrong_email) {
   ASSERT_TRUE(_result.as_object().at("message").is_string());
   ASSERT_TRUE(_result.as_object().at("errors").is_object());
   ASSERT_TRUE(_result.as_object().at("errors").as_object().contains("email"));
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("email").is_array());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("email").as_array().size(), 1);
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("email").as_array().at(0).is_string());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("email").as_array().at(0).as_string(), "The email isn't registered.");
+  ASSERT_TRUE(
+      _result.as_object().at("errors").as_object().at("email").is_array());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("email")
+                .as_array()
+                .size(),
+            1);
+  ASSERT_TRUE(_result.as_object()
+                  .at("errors")
+                  .as_object()
+                  .at("email")
+                  .as_array()
+                  .at(0)
+                  .is_string());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("email")
+                .as_array()
+                .at(0)
+                .as_string(),
+            "The email isn't registered.");
 
   boost::beast::error_code _ec;
   _stream.socket().shutdown(socket::shutdown_both, _ec);
@@ -233,7 +260,8 @@ TEST_F(test_server, can_handle_post_auth_attempt_request_on_wrong_password) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -263,11 +291,32 @@ TEST_F(test_server, can_handle_post_auth_attempt_request_on_wrong_password) {
   ASSERT_TRUE(_result.as_object().contains("message"));
   ASSERT_TRUE(_result.as_object().at("message").is_string());
   ASSERT_TRUE(_result.as_object().at("errors").is_object());
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().contains("password"));
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("password").is_array());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("password").as_array().size(), 1);
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("password").as_array().at(0).is_string());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("password").as_array().at(0).as_string(), "The password is incorrect.");
+  ASSERT_TRUE(
+      _result.as_object().at("errors").as_object().contains("password"));
+  ASSERT_TRUE(
+      _result.as_object().at("errors").as_object().at("password").is_array());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("password")
+                .as_array()
+                .size(),
+            1);
+  ASSERT_TRUE(_result.as_object()
+                  .at("errors")
+                  .as_object()
+                  .at("password")
+                  .as_array()
+                  .at(0)
+                  .is_string());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("password")
+                .as_array()
+                .at(0)
+                .as_string(),
+            "The password is incorrect.");
 
   boost::beast::error_code _ec;
   _stream.socket().shutdown(socket::shutdown_both, _ec);
@@ -279,7 +328,8 @@ TEST_F(test_server, can_handle_get_user_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -309,7 +359,8 @@ TEST_F(test_server, can_handle_get_user_request) {
   ASSERT_TRUE(_result.as_object().at("data").is_object());
   ASSERT_TRUE(_result.as_object().at("data").as_object().contains("id"));
   ASSERT_TRUE(_result.as_object().at("data").as_object().at("id").is_string());
-  std::string _auth_id{_result.as_object().at("data").as_object().at("id").as_string()};
+  std::string _auth_id{
+      _result.as_object().at("data").as_object().at("id").as_string()};
   ASSERT_EQ(_auth_id, to_string(_id));
 
   boost::beast::error_code _ec;
@@ -322,7 +373,8 @@ TEST_F(test_server, can_handle_get_queues_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -352,11 +404,33 @@ TEST_F(test_server, can_handle_get_queues_request) {
   ASSERT_TRUE(_result.as_object().at("data").is_array());
   ASSERT_TRUE(_result.as_object().at("data").as_array().size() == 1);
   ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).is_object());
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().contains("id"));
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().at("id").is_string());
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().contains("name"));
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().at("name").is_string());
-  std::string _name{_result.as_object().at("data").as_array().at(0).as_object().at("name").as_string()};
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_array().at(0).as_object().contains(
+          "id"));
+  ASSERT_TRUE(_result.as_object()
+                  .at("data")
+                  .as_array()
+                  .at(0)
+                  .as_object()
+                  .at("id")
+                  .is_string());
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_array().at(0).as_object().contains(
+          "name"));
+  ASSERT_TRUE(_result.as_object()
+                  .at("data")
+                  .as_array()
+                  .at(0)
+                  .as_object()
+                  .at("name")
+                  .is_string());
+  std::string _name{_result.as_object()
+                        .at("data")
+                        .as_array()
+                        .at(0)
+                        .as_object()
+                        .at("name")
+                        .as_string()};
   ASSERT_EQ(_name, "metrics");
 
   boost::beast::error_code _ec;
@@ -369,7 +443,8 @@ TEST_F(test_server, can_handle_get_queue_tasks_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -399,11 +474,33 @@ TEST_F(test_server, can_handle_get_queue_tasks_request) {
   ASSERT_TRUE(_result.as_object().at("data").is_array());
   ASSERT_TRUE(_result.as_object().at("data").as_array().size() == 1);
   ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).is_object());
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().contains("id"));
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().at("id").is_string());
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().contains("name"));
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().at("name").is_string());
-  std::string _name{_result.as_object().at("data").as_array().at(0).as_object().at("name").as_string()};
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_array().at(0).as_object().contains(
+          "id"));
+  ASSERT_TRUE(_result.as_object()
+                  .at("data")
+                  .as_array()
+                  .at(0)
+                  .as_object()
+                  .at("id")
+                  .is_string());
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_array().at(0).as_object().contains(
+          "name"));
+  ASSERT_TRUE(_result.as_object()
+                  .at("data")
+                  .as_array()
+                  .at(0)
+                  .as_object()
+                  .at("name")
+                  .is_string());
+  std::string _name{_result.as_object()
+                        .at("data")
+                        .as_array()
+                        .at(0)
+                        .as_object()
+                        .at("name")
+                        .as_string()};
   ASSERT_EQ(_name, "increase_requests");
 
   boost::beast::error_code _ec;
@@ -416,7 +513,8 @@ TEST_F(test_server, can_handle_get_queue_jobs_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -448,10 +546,26 @@ TEST_F(test_server, can_handle_get_queue_jobs_request) {
   ASSERT_TRUE(_result.as_object().at("data").is_array());
   ASSERT_TRUE(_result.as_object().at("data").as_array().size() == 1);
   ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).is_object());
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().contains("id"));
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().at("id").is_string());
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().contains("task_id"));
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().at("task_id").is_string());
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_array().at(0).as_object().contains(
+          "id"));
+  ASSERT_TRUE(_result.as_object()
+                  .at("data")
+                  .as_array()
+                  .at(0)
+                  .as_object()
+                  .at("id")
+                  .is_string());
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_array().at(0).as_object().contains(
+          "task_id"));
+  ASSERT_TRUE(_result.as_object()
+                  .at("data")
+                  .as_array()
+                  .at(0)
+                  .as_object()
+                  .at("task_id")
+                  .is_string());
 
   boost::beast::error_code _ec;
   _stream.socket().shutdown(socket::shutdown_both, _ec);
@@ -463,7 +577,8 @@ TEST_F(test_server, can_handle_get_queue_workers_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -495,10 +610,26 @@ TEST_F(test_server, can_handle_get_queue_workers_request) {
   ASSERT_TRUE(_result.as_object().at("data").is_array());
   ASSERT_TRUE(_result.as_object().at("data").as_array().size() == 1);
   ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).is_object());
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().contains("id"));
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().at("id").is_string());
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().contains("number_of_tasks"));
-  ASSERT_TRUE(_result.as_object().at("data").as_array().at(0).as_object().at("number_of_tasks").is_number());
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_array().at(0).as_object().contains(
+          "id"));
+  ASSERT_TRUE(_result.as_object()
+                  .at("data")
+                  .as_array()
+                  .at(0)
+                  .as_object()
+                  .at("id")
+                  .is_string());
+  ASSERT_TRUE(
+      _result.as_object().at("data").as_array().at(0).as_object().contains(
+          "number_of_tasks"));
+  ASSERT_TRUE(_result.as_object()
+                  .at("data")
+                  .as_array()
+                  .at(0)
+                  .as_object()
+                  .at("number_of_tasks")
+                  .is_number());
 
   boost::beast::error_code _ec;
   _stream.socket().shutdown(socket::shutdown_both, _ec);
@@ -510,7 +641,8 @@ TEST_F(test_server, can_handle_post_queue_dispatch_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -520,7 +652,8 @@ TEST_F(test_server, can_handle_post_queue_dispatch_request) {
   _request.set(http_field::host, _host);
   _request.set(http_field::user_agent, "Client");
   _request.set(http_field::authorization, _jwt->as_string());
-  _request.body() = serialize(object{{"task", "increase_requests"}, {"data", object{}}});
+  _request.body() =
+      serialize(object{{"task", "increase_requests"}, {"data", object{}}});
   _request.prepare_payload();
 
   write(_stream, _request);
@@ -543,7 +676,8 @@ TEST_F(test_server, can_throw_unprocessable_entity_on_invalid_body) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -569,14 +703,30 @@ TEST_F(test_server, can_throw_unprocessable_entity_on_invalid_body) {
   ASSERT_TRUE(_result.is_object());
   ASSERT_TRUE(_result.as_object().contains("message"));
   ASSERT_TRUE(_result.as_object().at("message").is_string());
-  ASSERT_EQ(_result.as_object().at("message").as_string(), "The given data was invalid.");
+  ASSERT_EQ(_result.as_object().at("message").as_string(),
+            "The given data was invalid.");
   ASSERT_TRUE(_result.as_object().contains("errors"));
   ASSERT_TRUE(_result.as_object().at("errors").is_object());
   ASSERT_TRUE(_result.as_object().at("errors").as_object().contains("*"));
   ASSERT_TRUE(_result.as_object().at("errors").as_object().at("*").is_array());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("*").as_array().size(), 1);
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("*").as_array().at(0).is_string());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("*").as_array().at(0).as_string(), "The payload must be a valid json value.");
+  ASSERT_EQ(
+      _result.as_object().at("errors").as_object().at("*").as_array().size(),
+      1);
+  ASSERT_TRUE(_result.as_object()
+                  .at("errors")
+                  .as_object()
+                  .at("*")
+                  .as_array()
+                  .at(0)
+                  .is_string());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("*")
+                .as_array()
+                .at(0)
+                .as_string(),
+            "The payload must be a valid json value.");
 
   boost::beast::error_code _ec;
   _stream.socket().shutdown(socket::shutdown_both, _ec);
@@ -588,7 +738,8 @@ TEST_F(test_server, can_throw_unprocessable_entity_on_invalid_payload) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -614,19 +765,61 @@ TEST_F(test_server, can_throw_unprocessable_entity_on_invalid_payload) {
   ASSERT_TRUE(_result.is_object());
   ASSERT_TRUE(_result.as_object().contains("message"));
   ASSERT_TRUE(_result.as_object().at("message").is_string());
-  ASSERT_EQ(_result.as_object().at("message").as_string(), "The given data was invalid.");
+  ASSERT_EQ(_result.as_object().at("message").as_string(),
+            "The given data was invalid.");
   ASSERT_TRUE(_result.as_object().contains("errors"));
   ASSERT_TRUE(_result.as_object().at("errors").is_object());
   ASSERT_TRUE(_result.as_object().at("errors").as_object().contains("email"));
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("email").is_array());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("email").as_array().size(), 1);
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("email").as_array().at(0).is_string());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("email").as_array().at(0).as_string(), "Attribute email is required.");
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().contains("password"));
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("password").is_array());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("password").as_array().size(), 1);
-  ASSERT_TRUE(_result.as_object().at("errors").as_object().at("password").as_array().at(0).is_string());
-  ASSERT_EQ(_result.as_object().at("errors").as_object().at("password").as_array().at(0).as_string(), "Attribute password is required.");
+  ASSERT_TRUE(
+      _result.as_object().at("errors").as_object().at("email").is_array());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("email")
+                .as_array()
+                .size(),
+            1);
+  ASSERT_TRUE(_result.as_object()
+                  .at("errors")
+                  .as_object()
+                  .at("email")
+                  .as_array()
+                  .at(0)
+                  .is_string());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("email")
+                .as_array()
+                .at(0)
+                .as_string(),
+            "Attribute email is required.");
+  ASSERT_TRUE(
+      _result.as_object().at("errors").as_object().contains("password"));
+  ASSERT_TRUE(
+      _result.as_object().at("errors").as_object().at("password").is_array());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("password")
+                .as_array()
+                .size(),
+            1);
+  ASSERT_TRUE(_result.as_object()
+                  .at("errors")
+                  .as_object()
+                  .at("password")
+                  .as_array()
+                  .at(0)
+                  .is_string());
+  ASSERT_EQ(_result.as_object()
+                .at("errors")
+                .as_object()
+                .at("password")
+                .as_array()
+                .at(0)
+                .as_string(),
+            "Attribute password is required.");
 
   boost::beast::error_code _ec;
   _stream.socket().shutdown(socket::shutdown_both, _ec);
@@ -638,7 +831,8 @@ TEST_F(test_server, can_throw_unauthorized_on_invalid_tokens) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -667,7 +861,8 @@ TEST_F(test_server, can_timeout_http_sessions) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -702,7 +897,8 @@ TEST_F(test_server, can_handle_http_cors_request) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -746,7 +942,8 @@ TEST_F(test_server, can_handle_exceptions) {
   resolver _resolver(_client_ioc);
   const std::string _host = "127.0.0.1";
   const unsigned short int _port = server_->get_state()->get_port();
-  auto const _tcp_resolver_results = _resolver.resolve(_host, std::to_string(_port));
+  auto const _tcp_resolver_results =
+      _resolver.resolve(_host, std::to_string(_port));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_tcp_resolver_results);
 
@@ -770,25 +967,26 @@ TEST_F(test_server, can_handle_exceptions) {
 }
 
 TEST_F(test_server, basic_tcp_endpoint_check) {
-  auto _service = server_->serve(std::make_shared<tcp_handlers<tcp_endpoint, tcp_connection<tcp_endpoint>>>(
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>) -> async_of<void> {
+  auto _service = server_->serve(std::make_shared<tcp_handlers>(
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
         client_connected_.store(true);
         co_return;
       },
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>) -> async_of<void> {
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
         client_accepted_.store(true);
         co_return;
       },
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>, const std::string payload) -> async_of<void> {
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>,
+          const std::string payload) -> async_of<void> {
         boost::ignore_unused(payload);
         client_read_.store(true);
         co_return;
       },
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>) -> async_of<void> {
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
         client_write_.store(true);
         co_return;
       },
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>) -> async_of<void> {
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
         client_disconnected_.store(true);
         co_return;
       }));
@@ -799,7 +997,8 @@ TEST_F(test_server, basic_tcp_endpoint_check) {
 
   boost::asio::io_context _client_ioc;
   resolver _resolver(_client_ioc);
-  const auto _results = _resolver.resolve("127.0.0.1", std::to_string(_service->get_port()));
+  const auto _results =
+      _resolver.resolve("127.0.0.1", std::to_string(_service->get_port()));
   tcp_stream _stream(_client_ioc);
   _stream.connect(_results);
 
@@ -812,7 +1011,9 @@ TEST_F(test_server, basic_tcp_endpoint_check) {
   _header[2] = static_cast<unsigned char>(_payload_length >> 8 & 0xFF);
   _header[3] = static_cast<unsigned char>(_payload_length >> 0 & 0xFF);
 
-  std::array<boost::asio::const_buffer, 2> _buffers{boost::asio::buffer(_header, sizeof(_header)), boost::asio::buffer(_data)};
+  std::array<boost::asio::const_buffer, 2> _buffers{
+      boost::asio::buffer(_header, sizeof(_header)),
+      boost::asio::buffer(_data)};
   boost::asio::write(_stream.socket(), _buffers);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -829,13 +1030,17 @@ TEST_F(test_server, basic_tcp_endpoint_check) {
   boost::asio::read(_stream.socket(), boost::asio::buffer(_response_header, 4));
 
   std::uint32_t _response_length =
-      static_cast<std::uint32_t>(_response_header[0]) << 24 | static_cast<std::uint32_t>(_response_header[1]) << 16 |
-      static_cast<std::uint32_t>(_response_header[2]) << 8 | static_cast<std::uint32_t>(_response_header[3]) << 0;
+      static_cast<std::uint32_t>(_response_header[0]) << 24 |
+      static_cast<std::uint32_t>(_response_header[1]) << 16 |
+      static_cast<std::uint32_t>(_response_header[2]) << 8 |
+      static_cast<std::uint32_t>(_response_header[3]) << 0;
 
   ASSERT_EQ(_response_length, 4u);
 
   std::vector<char> _response_payload(_response_length);
-  boost::asio::read(_stream.socket(), boost::asio::buffer(_response_payload.data(), _response_payload.size()));
+  boost::asio::read(
+      _stream.socket(),
+      boost::asio::buffer(_response_payload.data(), _response_payload.size()));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -855,25 +1060,26 @@ TEST_F(test_server, basic_tcp_endpoint_check) {
 }
 
 TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
-  const auto _endpoint = server_->serve(std::make_shared<tcp_handlers<tcp_endpoint, tcp_connection<tcp_endpoint>>>(
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>) -> async_of<void> {
+  const auto _endpoint = server_->serve(std::make_shared<tcp_handlers>(
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
         client_connected_.store(true);
         co_return;
       },
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>) -> async_of<void> {
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
         client_accepted_.store(true);
         co_return;
       },
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>, const std::string payload) -> async_of<void> {
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>,
+          const std::string payload) -> async_of<void> {
         boost::ignore_unused(payload);
         client_read_.store(true);
         co_return;
       },
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>) -> async_of<void> {
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
         client_write_.store(true);
         co_return;
       },
-      [&](shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>) -> async_of<void> {
+      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
         client_disconnected_.store(true);
         co_return;
       }));
@@ -888,33 +1094,41 @@ TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
     return _pred();
   };
 
-  ASSERT_TRUE(_wait_for_flag([&_endpoint]() { return _endpoint->get_running(); }, 2000));
+  ASSERT_TRUE(_wait_for_flag(
+      [&_endpoint]() { return _endpoint->get_running(); }, 2000));
 
-  auto _service =
-      server_->connect(std::make_shared<tcp_handlers<tcp_service, tcp_connection<tcp_service>>>(
-                           [&](shared_of<tcp_service>, shared_of<tcp_connection<tcp_service>> conn) -> async_of<void> {
-                             std::string _ping = "ping";
-                             conn->invoke(_ping);
-                             co_return;
-                           },
-                           nullptr,
-                           [&](shared_of<tcp_service>, shared_of<tcp_connection<tcp_service>>, std::string payload) -> async_of<void> {
-                             if (payload == "pong") {
-                               client_write_.store(true);
-                             }
-                             co_return;
-                           },
-                           nullptr,
-                           [&](shared_of<tcp_service>, shared_of<tcp_connection<tcp_service>>) -> async_of<void> {
-                             client_disconnected_.store(true);
-                             co_return;
-                           },
-                           nullptr),
-                       "127.0.0.1", _endpoint->get_port());
+  auto _service = server_->connect(
+      std::make_shared<tcp_handlers>(
+          [&](shared_of<tcp_service>,
+              shared_of<tcp_connection> conn) -> async_of<void> {
+            std::string _ping = "ping";
+            conn->invoke(_ping);
+            co_return;
+          },
+          nullptr,
+          [&](shared_of<tcp_service>, shared_of<tcp_connection>,
+              std::string payload) -> async_of<void> {
+            if (payload == "pong") {
+              client_write_.store(true);
+            }
+            co_return;
+          },
+          nullptr,
+          [&](shared_of<tcp_service>,
+              shared_of<tcp_connection>) -> async_of<void> {
+            client_disconnected_.store(true);
+            co_return;
+          },
+          nullptr),
+      "127.0.0.1", _endpoint->get_port());
 
-  ASSERT_TRUE(_wait_for_flag([&]() { return client_connected_.load(); }, 2000) && "client_connected timed out");
-  ASSERT_TRUE(_wait_for_flag([&]() { return client_accepted_.load(); }, 2000) && "client_accepted timed out");
-  ASSERT_TRUE(_wait_for_flag([&]() { return client_read_.load(); }, 2000) && "client_read (ping) timed out");
+  ASSERT_TRUE(
+      _wait_for_flag([&]() { return client_connected_.load(); }, 2000) &&
+      "client_connected timed out");
+  ASSERT_TRUE(_wait_for_flag([&]() { return client_accepted_.load(); }, 2000) &&
+              "client_accepted timed out");
+  ASSERT_TRUE(_wait_for_flag([&]() { return client_read_.load(); }, 2000) &&
+              "client_read (ping) timed out");
 
   auto _wait_for_snapshot_non_empty = [&]() -> bool {
     const int _step_ms = 5;
@@ -925,16 +1139,20 @@ TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
     }
     return !_service->snapshot().empty();
   };
-  ASSERT_TRUE(_wait_for_snapshot_non_empty() && "service snapshot empty (no client connections)");
+  ASSERT_TRUE(_wait_for_snapshot_non_empty() &&
+              "service snapshot empty (no client connections)");
 
   const auto _writer = _endpoint->snapshot().front();
   ASSERT_NE(_writer, nullptr);
   std::string _pong = "pong";
   _writer->invoke(_pong);
 
-  ASSERT_TRUE(_wait_for_flag([&]() { return client_write_.load(); }, 2000) && "client_write (pong) timed out");
+  ASSERT_TRUE(_wait_for_flag([&]() { return client_write_.load(); }, 2000) &&
+              "client_write (pong) timed out");
 
   _service->stop_clients();
 
-  ASSERT_TRUE(_wait_for_flag([&]() { return client_disconnected_.load(); }, 2000) && "client_disconnected timed out");
+  ASSERT_TRUE(
+      _wait_for_flag([&]() { return client_disconnected_.load(); }, 2000) &&
+      "client_disconnected timed out");
 }

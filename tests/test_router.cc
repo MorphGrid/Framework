@@ -31,23 +31,29 @@ TEST(test_router, can_resolve_requests) {
               http_verb::post,
           },
           "/transactions/{id}",
-          std::make_shared<controller>([](const shared_state state, const request_type request, const params_type params,
-                                          const shared_auth auth) -> async_of<response_type> {
-            response_empty_type _response{http_status::ok, request.version()};
-            _response.prepare_payload();
-            co_return _response;
-          })))
+          std::make_shared<controller>(
+              [](const shared_state state, const request_type request,
+                 const params_type params,
+                 const shared_auth auth) -> async_of<response_type> {
+                response_empty_type _response{http_status::ok,
+                                              request.version()};
+                _response.prepare_payload();
+                co_return _response;
+              })))
       ->add(std::make_shared<route>(
           vector_of{
               http_verb::delete_,
           },
           "/users/{id}",
-          std::make_shared<controller>([](const shared_state state, const request_type request, const params_type params,
-                                          const shared_auth auth) -> async_of<response_type> {
-            response_empty_type _response{http_status::ok, request.version()};
-            _response.prepare_payload();
-            co_return _response;
-          })));
+          std::make_shared<controller>(
+              [](const shared_state state, const request_type request,
+                 const params_type params,
+                 const shared_auth auth) -> async_of<response_type> {
+                response_empty_type _response{http_status::ok,
+                                              request.version()};
+                _response.prepare_payload();
+                co_return _response;
+              })));
 
   {
     auto [_params, _route] = _router->find(http_verb::delete_, "/users/5");
@@ -74,7 +80,8 @@ TEST(test_router, can_resolve_requests) {
   {
     bool throws = false;
     try {
-      auto [_params, _route] = _router->find(http_verb::delete_, "/transactions/5");
+      auto [_params, _route] =
+          _router->find(http_verb::delete_, "/transactions/5");
     } catch (const errors::not_found_error &) {
       throws = true;
     }

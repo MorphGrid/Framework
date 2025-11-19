@@ -75,14 +75,8 @@ using shared_queue = std::shared_ptr<queue>;
 class jwt;
 using shared_jwt = std::shared_ptr<jwt>;
 
-template <class ServiceType>
 class tcp_connection;
-
-template <typename Service, typename Connection>
 class tcp_handlers;
-
-class tcp_endpoint;
-
 class tcp_service;
 
 class validator;
@@ -101,11 +95,15 @@ using http_verb = boost::beast::http::verb;
 using http_status = boost::beast::http::status;
 using http_field = boost::beast::http::field;
 using message = boost::beast::http::message_generator;
-using response_type = boost::beast::http::response<boost::beast::http::string_body>;
-using response_empty_type = boost::beast::http::response<boost::beast::http::empty_body>;
+using response_type =
+    boost::beast::http::response<boost::beast::http::string_body>;
+using response_empty_type =
+    boost::beast::http::response<boost::beast::http::empty_body>;
 
-using request_type = boost::beast::http::request<boost::beast::http::string_body>;
-using params_type = std::unordered_map<std::string, std::string, string_hasher, std::equal_to<>>;
+using request_type =
+    boost::beast::http::request<boost::beast::http::string_body>;
+using params_type = std::unordered_map<std::string, std::string, string_hasher,
+                                       std::equal_to<>>;
 
 template <typename T>
 using shared_of = std::shared_ptr<T>;
@@ -135,7 +133,8 @@ template <typename T, typename S>
 using map_of = std::map<T, S>;
 
 template <typename T>
-using async_of = boost::asio::awaitable<T, boost::asio::strand<boost::asio::io_context::executor_type>>;
+using async_of = boost::asio::awaitable<
+    T, boost::asio::strand<boost::asio::io_context::executor_type>>;
 
 template <typename T, typename S>
 using async_to = boost::asio::awaitable<T, S>;
@@ -151,9 +150,11 @@ using object = boost::json::object;
 using value = boost::json::value;
 using array = boost::json::array;
 
-using controller_callback_type = std::function<async_of<response_type>(shared_state, request_type, params_type, shared_auth)>;
+using controller_callback_type = std::function<async_of<response_type>(
+    shared_state, request_type, params_type, shared_auth)>;
 
-using handler_signature_type = async_of<void>(atomic_of<bool> &, object const &);
+using handler_signature_type = async_of<void>(atomic_of<bool> &,
+                                              object const &);
 
 using handler_type = std::function<handler_signature_type>;
 
@@ -161,7 +162,8 @@ using endpoint = boost::asio::ip::tcp::endpoint;
 using acceptor = boost::asio::ip::tcp::acceptor;
 using resolver = boost::asio::ip::tcp::resolver;
 using tcp_stream = boost::beast::tcp_stream;
-using tcp_executor = boost::asio::strand<boost::asio::io_context::executor_type>;
+using tcp_executor =
+    boost::asio::strand<boost::asio::io_context::executor_type>;
 using flat_buffer = boost::beast::flat_buffer;
 using system_error = boost::system::system_error;
 using socket = boost::asio::ip::tcp::socket;

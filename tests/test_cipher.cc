@@ -76,7 +76,8 @@ TEST(test_cipher, aes_decrypt_fails_with_wrong_tag) {
   const auto [_key, _iv] = generate_aes_key_iv();
 
   auto _encrypted = encrypt(_plaintext, _key, _iv);
-  _encrypted[_encrypted.size() - 1] ^= 0x01;  // Corrupt the last byte of the tag
+  _encrypted[_encrypted.size() - 1] ^=
+      0x01;  // Corrupt the last byte of the tag
 
   EXPECT_THROW({ decrypt(_encrypted, _key, _iv); }, errors::cipher_error);
 }

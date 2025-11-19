@@ -26,13 +26,21 @@ std::string hmac(const std::string& input, const std::string_view& app_key);
 
 pair_of<std::string, std::string> generate_aes_key_iv();
 
-std::string encrypt(const std::string& input, const std::string& key, const std::string& iv);
+std::string encrypt(const std::string& input, const std::string& key,
+                    const std::string& iv);
 
-std::string decrypt(std::string_view input, const std::string& key, const std::string& iv);
+std::string decrypt(std::string_view input, const std::string& key,
+                    const std::string& iv);
 
-inline bool password_validator(const std::string& input, const std::string& hash) { return BCrypt::validatePassword(input, hash); }
+inline bool password_validator(const std::string& input,
+                               const std::string& hash) {
+  return BCrypt::validatePassword(input, hash);
+}
 
-inline std::string password_hash(const std::string& input, const int workload = 12) { return BCrypt::generateHash(input, workload); }
+inline std::string password_hash(const std::string& input,
+                                 const int workload = 12) {
+  return BCrypt::generateHash(input, workload);
+}
 }  // namespace framework
 
 #endif  // FRAMEWORK_CIPHER_HPP

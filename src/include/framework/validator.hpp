@@ -7,12 +7,16 @@
 namespace framework {
 
 class validator final : public std::enable_shared_from_this<validator> {
-  bool per_rule(const value& value, const std::string& attribute, const std::string& rule);
-  bool per_scope_rule(const value& value, const std::string& attribute, const std::string_view& rule);
+  bool per_rule(const value& value, const std::string& attribute,
+                const std::string& rule);
+  bool per_scope_rule(const value& value, const std::string& attribute,
+                      const std::string_view& rule);
 
   void on_confirmation_rule(const value& value, const std::string& attribute);
-  void on_array_of_strings_rule(const value& value, const std::string& attribute);
-  void on_array_of_strings_per_element_rule(const value& value, const std::string& attribute);
+  void on_array_of_strings_rule(const value& value,
+                                const std::string& attribute);
+  void on_array_of_strings_per_element_rule(const value& value,
+                                            const std::string& attribute);
   void on_number_rule(const value& value, const std::string& attribute);
   void on_object_rule(const value& value, const std::string& attribute);
   void on_uuid_rule(const value& value, const std::string& attribute);
@@ -27,11 +31,15 @@ class validator final : public std::enable_shared_from_this<validator> {
   bool get_success() const;
   validator() = default;
 
-  static shared_validator make(const map_of<std::string, std::string>& rules, const value& value) {
+  static shared_validator make(const map_of<std::string, std::string>& rules,
+                               const value& value) {
     auto _response = std::make_shared<validator>();
 
     for (const auto& [_attribute, _rule] : rules) {
-      if (auto const should_break = _response->per_rule(value, _attribute, _rule); should_break) break;
+      if (auto const should_break =
+              _response->per_rule(value, _attribute, _rule);
+          should_break)
+        break;
     }
 
     _response->success_ = _response->errors_.empty();
