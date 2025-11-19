@@ -13,14 +13,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include <framework/tcp_connection.hpp>
+#include <framework/tcp_handlers.hpp>
 #include <framework/tcp_service.hpp>
-#include <framework/tcp_service_handlers.hpp>
 
 namespace framework {
-tcp_service::tcp_service(const uuid id, std::string host, const unsigned short int port, shared_tcp_service_handlers handlers)
+tcp_service::tcp_service(const uuid id, std::string host, const unsigned short int port,
+                         shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> handlers)
     : id_(id), host_(std::move(host)), port_(port), callback_(std::move(handlers)) {}
 
-shared_tcp_service_handlers tcp_service::handlers() const { return callback_; }
+shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> tcp_service::handlers() const { return callback_; }
 
 uuid tcp_service::get_id() const { return id_; }
 
@@ -34,17 +35,17 @@ bool tcp_service::get_running() const { return running_.load(std::memory_order_a
 
 void tcp_service::set_running(const bool running) { running_.store(running, std::memory_order_release); }
 
-void tcp_service::add(shared_tcp_service_connection writer) {
+void tcp_service::add(shared_of<tcp_connection<tcp_service>> writer) {
   std::lock_guard lock(mutex_);
   writers_.emplace_back(std::move(writer));
 }
 
 void tcp_service::remove(uuid session_id) {
   std::lock_guard lock(mutex_);
-  std::erase_if(writers_, [&session_id](const shared_tcp_service_connection &w) { return w->get_id() == session_id; });
+  std::erase_if(writers_, [&session_id](const shared_of<tcp_connection<tcp_service>> &w) { return w->get_id() == session_id; });
 }
 
-vector_of<shared_tcp_service_connection> tcp_service::snapshot() {
+vector_of<shared_of<tcp_connection<tcp_service>>> tcp_service::snapshot() {
   std::lock_guard lock(mutex_);
   return writers_;
 }

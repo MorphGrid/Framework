@@ -84,7 +84,8 @@ void server::start(const unsigned short int port) {
   state_->run();
 }
 
-shared_tcp_endpoint server::serve(shared_tcp_endpoint_handlers callbacks, unsigned short int port) const {
+shared_of<tcp_endpoint> server::serve(shared_of<tcp_handlers<tcp_endpoint, tcp_connection<tcp_endpoint>>> callbacks,
+                                      unsigned short int port) const {
   auto _endpoint_id = state_->generate_id();
   const auto _endpoint = std::make_shared<tcp_endpoint>(_endpoint_id, port, callbacks);
   state_->endpoints().try_emplace(_endpoint_id, _endpoint);
@@ -105,7 +106,8 @@ shared_tcp_endpoint server::serve(shared_tcp_endpoint_handlers callbacks, unsign
   return _endpoint;
 }
 
-shared_tcp_service server::connect(shared_tcp_service_handlers callbacks, std::string host, unsigned short int port) const {
+shared_of<tcp_service> server::connect(shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> callbacks, std::string host,
+                                       unsigned short int port) const {
   auto _service_id = state_->generate_id();
   const auto _service = std::make_shared<tcp_service>(_service_id, host, port, callbacks);
   state_->services().try_emplace(_service_id, _service);

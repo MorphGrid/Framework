@@ -20,7 +20,7 @@
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> tcp_client(task_group& task_group, shared_state state, shared_tcp_service service);
+async_of<void> tcp_client(task_group& task_group, shared_state state, shared_of<tcp_service> service);
 }  // namespace framework
 
 #endif  // FRAMEWORK_TCP_CLIENT_HPP

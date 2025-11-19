@@ -19,12 +19,12 @@
 #include <framework/task_group.hpp>
 #include <framework/tcp_connection.hpp>
 #include <framework/tcp_endpoint.hpp>
-#include <framework/tcp_endpoint_handlers.hpp>
+#include <framework/tcp_handlers.hpp>
 #include <framework/tcp_listener.hpp>
 #include <framework/tcp_session.hpp>
 
 namespace framework {
-async_of<void> tcp_listener(task_group &task_group, const shared_state state, shared_tcp_endpoint service) {
+async_of<void> tcp_listener(task_group &task_group, const shared_state state, shared_of<tcp_endpoint> service) {
   auto _cancellation_state = co_await boost::asio::this_coro::cancellation_state;
   const auto _executor = co_await boost::asio::this_coro::executor;
   auto _endpoint = endpoint{boost::asio::ip::make_address("0.0.0.0"), service->get_port()};
@@ -53,7 +53,7 @@ async_of<void> tcp_listener(task_group &task_group, const shared_state state, sh
 
     if (_ec) throw boost::system::system_error{_ec};
 
-    co_spawn(*_socket_executor, tcp_session<shared_tcp_endpoint, shared_tcp_endpoint_connection>(state, service, _connection),
+    co_spawn(*_socket_executor, tcp_session<shared_of<tcp_endpoint>, shared_of<tcp_connection<tcp_endpoint>>>(state, service, _connection),
              task_group.adapt([](const std::exception_ptr &throwable) noexcept {
                if (throwable) {
                  try {

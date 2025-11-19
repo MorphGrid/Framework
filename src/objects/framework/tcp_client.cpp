@@ -16,12 +16,12 @@
 #include <framework/task_group.hpp>
 #include <framework/tcp_client.hpp>
 #include <framework/tcp_connection.hpp>
+#include <framework/tcp_handlers.hpp>
 #include <framework/tcp_service.hpp>
-#include <framework/tcp_service_handlers.hpp>
 #include <framework/tcp_session.hpp>
 
 namespace framework {
-async_of<void> single_connection(shared_state state, shared_tcp_service service, shared_of<tcp_executor> exec) {
+async_of<void> single_connection(shared_state state, shared_of<tcp_service> service, shared_of<tcp_executor> exec) {
   const auto _host = service->get_host();
   const auto _port = std::to_string(service->get_port());
 
@@ -47,7 +47,7 @@ async_of<void> single_connection(shared_state state, shared_tcp_service service,
     co_await service->handlers()->on_accepted()(service, _connection);
   }
 
-  co_await tcp_session<shared_tcp_service, shared_tcp_service_connection>(state, service, _connection);
+  co_await tcp_session<shared_of<tcp_service>, shared_of<tcp_connection<tcp_service>>>(state, service, _connection);
   if (service->handlers() && service->handlers()->on_disconnected()) {
     try {
       co_await service->handlers()->on_disconnected()(service, _connection);
@@ -57,7 +57,7 @@ async_of<void> single_connection(shared_state state, shared_tcp_service service,
   co_return;
 }
 
-async_of<void> tcp_client(task_group& task_group, shared_state state, shared_tcp_service service) {
+async_of<void> tcp_client(task_group& task_group, shared_state state, shared_of<tcp_service> service) {
   const auto _executor = co_await boost::asio::this_coro::executor;
 
   service->set_running(true);
