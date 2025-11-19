@@ -12,14 +12,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#include <framework/tcp_connection.hpp>
 #include <framework/tcp_endpoint.hpp>
+#include <framework/tcp_endpoint_connection.hpp>
 
 namespace framework {
-tcp_endpoint::tcp_endpoint(const uuid id, const unsigned short int port, shared_tcp_handlers handlers)
+tcp_endpoint::tcp_endpoint(const uuid id, const unsigned short int port, shared_tcp_endpoint_handlers handlers)
     : id_(id), port_(port), callback_(std::move(handlers)) {}
 
-shared_tcp_handlers tcp_endpoint::handlers() const { return callback_; }
+shared_tcp_endpoint_handlers tcp_endpoint::handlers() const { return callback_; }
 
 uuid tcp_endpoint::get_id() const { return id_; }
 
@@ -31,17 +31,17 @@ bool tcp_endpoint::get_running() const { return running_.load(std::memory_order_
 
 void tcp_endpoint::set_running(bool running) { running_.store(running, std::memory_order_release); }
 
-void tcp_endpoint::add(shared_tcp_connection writer) {
+void tcp_endpoint::add(shared_tcp_endpoint_connection writer) {
   std::lock_guard lock(mutex_);
   writers_.emplace_back(std::move(writer));
 }
 
 void tcp_endpoint::remove(uuid session_id) {
   std::lock_guard lock(mutex_);
-  std::erase_if(writers_, [&session_id](const shared_tcp_connection& w) { return w->get_id() == session_id; });
+  std::erase_if(writers_, [&session_id](const shared_tcp_endpoint_connection& w) { return w->get_id() == session_id; });
 }
 
-vector_of<shared_tcp_connection> tcp_endpoint::snapshot() {
+vector_of<shared_tcp_endpoint_connection> tcp_endpoint::snapshot() {
   std::lock_guard lock(mutex_);
   return writers_;
 }

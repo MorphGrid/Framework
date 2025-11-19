@@ -12,23 +12,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#include <framework/tcp_connection.hpp>
-#include <framework/tcp_endpoint.hpp>
-#include <framework/tcp_handlers.hpp>
+#include <framework/tcp_service.hpp>
+#include <framework/tcp_service_connection.hpp>
+#include <framework/tcp_service_handlers.hpp>
 
 namespace framework {
-tcp_connection::tcp_connection(const uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_endpoint service)
+tcp_service_connection::tcp_service_connection(const uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream,
+                                               shared_tcp_service service)
     : service_(service), id_(id), strand_(std::move(strand)), stream_(std::move(stream)) {}
 
-boost::asio::streambuf& tcp_connection::get_buffer() { return buffer_; }
+boost::asio::streambuf& tcp_service_connection::get_buffer() { return buffer_; }
 
-uuid tcp_connection::get_id() const noexcept { return id_; }
+uuid tcp_service_connection::get_id() const noexcept { return id_; }
 
-shared_of<tcp_executor> tcp_connection::get_strand() const noexcept { return strand_; }
+shared_of<tcp_executor> tcp_service_connection::get_strand() const noexcept { return strand_; }
 
-shared_of<tcp_stream> tcp_connection::get_stream() const noexcept { return stream_; }
+shared_of<tcp_stream> tcp_service_connection::get_stream() const noexcept { return stream_; }
 
-async_of<void> tcp_connection::notify_write() {
+async_of<void> tcp_service_connection::notify_write() {
   if (service_->handlers()->on_write()) co_await service_->handlers()->on_write()(service_, shared_from_this());
 }
 }  // namespace framework

@@ -14,32 +14,34 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_TCP_ENDPOINT_HPP
-#define FRAMEWORK_TCP_ENDPOINT_HPP
+#ifndef FRAMEWORK_TCP_SERVICE_HPP
+#define FRAMEWORK_TCP_SERVICE_HPP
 
 #include <framework/support.hpp>
 
 namespace framework {
-class tcp_endpoint : public std::enable_shared_from_this<tcp_endpoint> {
+class tcp_service : public std::enable_shared_from_this<tcp_service> {
   atomic_of<bool> running_{false};
   uuid id_;
+  std::string host_;
   unsigned short int port_;
   std::mutex mutex_;
-  vector_of<shared_tcp_endpoint_connection> writers_;
-  shared_tcp_endpoint_handlers callback_;
+  vector_of<shared_tcp_service_connection> writers_;
+  shared_tcp_service_handlers callback_;
 
  public:
-  explicit tcp_endpoint(uuid id, unsigned short int port = 0, shared_tcp_endpoint_handlers handlers = nullptr);
-  shared_tcp_endpoint_handlers handlers() const;
+  explicit tcp_service(uuid id, std::string host, unsigned short int port = 0, shared_tcp_service_handlers handlers = nullptr);
+  shared_tcp_service_handlers handlers() const;
   uuid get_id() const;
+  std::string get_host() const;
   unsigned short int get_port() const;
   void set_port(unsigned short int port);
   bool get_running() const;
   void set_running(bool running);
-  void add(shared_tcp_endpoint_connection writer);
+  void add(shared_tcp_service_connection writer);
   void remove(uuid session_id);
-  vector_of<shared_tcp_endpoint_connection> snapshot();
+  vector_of<shared_tcp_service_connection> snapshot();
 };
 }  // namespace framework
 
-#endif  // FRAMEWORK_TCP_ENDPOINT_HPP
+#endif  // FRAMEWORK_TCP_SERVICE_HPP

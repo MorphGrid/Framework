@@ -75,14 +75,23 @@ using shared_queue = std::shared_ptr<queue>;
 class jwt;
 using shared_jwt = std::shared_ptr<jwt>;
 
-class tcp_handlers;
-using shared_tcp_handlers = std::shared_ptr<tcp_handlers>;
+class tcp_endpoint_handlers;
+using shared_tcp_endpoint_handlers = std::shared_ptr<tcp_endpoint_handlers>;
 
-class tcp_connection;
-using shared_tcp_connection = std::shared_ptr<tcp_connection>;
+class tcp_endpoint_connection;
+using shared_tcp_endpoint_connection = std::shared_ptr<tcp_endpoint_connection>;
 
 class tcp_endpoint;
 using shared_tcp_endpoint = std::shared_ptr<tcp_endpoint>;
+
+class tcp_service_handlers;
+using shared_tcp_service_handlers = std::shared_ptr<tcp_service_handlers>;
+
+class tcp_service_connection;
+using shared_tcp_service_connection = std::shared_ptr<tcp_service_connection>;
+
+class tcp_service;
+using shared_tcp_service = std::shared_ptr<tcp_service>;
 
 class validator;
 using shared_validator = std::shared_ptr<validator>;

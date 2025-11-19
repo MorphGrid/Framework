@@ -14,20 +14,20 @@
 
 #pragma once
 
-#ifndef FRAMEWORK_TCP_CONNECTION_HPP
-#define FRAMEWORK_TCP_CONNECTION_HPP
+#ifndef FRAMEWORK_TCP_SERVICE_CONNECTION_HPP
+#define FRAMEWORK_TCP_SERVICE_CONNECTION_HPP
 
 #include <framework/auth.hpp>
 #include <framework/support.hpp>
 
 namespace framework {
-class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
+class tcp_service_connection : public std::enable_shared_from_this<tcp_service_connection> {
   boost::asio::streambuf buffer_;
-  shared_tcp_endpoint service_;
+  shared_tcp_service service_;
   shared_auth auth_ = std::make_shared<auth>();
 
  public:
-  tcp_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_endpoint service);
+  tcp_service_connection(uuid id, shared_of<tcp_executor> strand, shared_of<tcp_stream> stream, shared_tcp_service service);
 
   boost::asio::streambuf &get_buffer();
 
@@ -77,4 +77,4 @@ class tcp_connection : public std::enable_shared_from_this<tcp_connection> {
 };
 }  // namespace framework
 
-#endif  // FRAMEWORK_TCP_CONNECTION_HPP
+#endif  // FRAMEWORK_TCP_SERVICE_CONNECTION_HPP
