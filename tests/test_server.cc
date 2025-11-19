@@ -969,7 +969,7 @@ TEST_F(test_server, can_handle_exceptions) {
 
 TEST_F(test_server, basic_tcp_endpoint_check) {
   auto _service =
-      server_->bind(SERVER, "0.0.0.0", 0,
+      server_->bind(tcp_kind::SERVER, "0.0.0.0", 0,
                     std::make_shared<tcp_handlers>(
                         [&](shared_of<tcp_service>,
                             shared_of<tcp_connection>) -> async_of<void> {
@@ -1068,7 +1068,7 @@ TEST_F(test_server, basic_tcp_endpoint_check) {
 
 TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
   const auto _endpoint =
-      server_->bind(SERVER, "0.0.0.0", 0,
+      server_->bind(tcp_kind::SERVER, "0.0.0.0", 0,
                     std::make_shared<tcp_handlers>(
                         [&](shared_of<tcp_service>,
                             shared_of<tcp_connection>) -> async_of<void> {
@@ -1112,7 +1112,7 @@ TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
   }
 
   auto _service =
-      server_->bind(CLIENT, "127.0.0.1", _endpoint->get_port(),
+      server_->bind(tcp_kind::CLIENT, "127.0.0.1", _endpoint->get_port(),
                     std::make_shared<tcp_handlers>(
                         [&](shared_of<tcp_service>,
                             shared_of<tcp_connection> conn) -> async_of<void> {

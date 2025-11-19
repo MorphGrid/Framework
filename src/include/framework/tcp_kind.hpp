@@ -18,7 +18,7 @@
 #define FRAMEWORK_TCP_KIND_HPP
 
 namespace framework {
-enum tcp_kind : int {
+enum class tcp_kind {
   SERVER = 0,
   CLIENT = 1,
 };

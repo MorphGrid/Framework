@@ -61,51 +61,31 @@ vector_of<shared_of<tcp_connection>> tcp_service::snapshot() {
 }
 
 void tcp_service::stop_clients() {
-  // marcar el servicio como no running primero
   running_.store(false, std::memory_order_release);
 
-  // tomar snapshot de conexiones y cerrarlas
-  auto _connections = snapshot();
-  for (auto &_connection : _connections) {
+  for (auto _connections = snapshot(); const auto &_connection : _connections) {
     if (!_connection) continue;
 
-    try {
-      auto _stream = _connection->get_stream();
-      if (_stream) {
-        boost::system::error_code ec;
-        auto &_sock = _stream->socket();
-        // shutdown & close (ignorar errores)
-        _sock.shutdown(boost::asio::socket_base::shutdown_both, ec);
-        _sock.close(ec);
-      }
-    } catch (...) {
-      // swallow exceptions durante cierre
+    if (const auto _stream = _connection->get_stream()) {
+      boost::system::error_code _ec;
+      auto &_socket = _stream->socket();
+      _socket.shutdown(boost::asio::socket_base::shutdown_both, _ec);
+      _socket.close(_ec);
     }
 
-    // Remover la conexión de la lista (si tcp_service_session no lo hizo ya)
-    try {
-      remove(_connection->get_id());
-    } catch (...) {
-    }
+    remove(_connection->get_id());
 
-    try {
-      if (callback_ && callback_->on_disconnected()) {
-        auto _service = shared_from_this();
-        auto _connection_copied = _connection;
-        co_spawn(
-            *_connection->get_strand(),
-            [_service, _connection_copied]() -> async_of<void> {
-              try {
-                co_await _service->handlers()->on_disconnected()(
-                    _service, _connection_copied);
-              } catch (...) {
-              }
-              co_return;
-            },
-            boost::asio::detached);
-      }
-    } catch (...) {
-      // swallow
+    if (callback_ && callback_->on_disconnected()) {
+      auto _service = shared_from_this();
+      auto _connection_copied = _connection;
+      co_spawn(
+          *_connection->get_strand(),
+          [_service, _connection_copied]() -> async_of<void> {
+            co_await _service->handlers()->on_disconnected()(
+                _service, _connection_copied);
+            co_return;
+          },
+          boost::asio::detached);
     }
   }
 }

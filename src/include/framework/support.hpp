@@ -79,7 +79,7 @@ class tcp_connection;
 class tcp_handlers;
 class tcp_service;
 
-enum tcp_kind : int;
+enum class tcp_kind : int;
 
 class validator;
 
