@@ -27,6 +27,9 @@
 #include <framework/tcp_endpoint.hpp>
 #include <framework/tcp_endpoint_connection.hpp>
 #include <framework/tcp_endpoint_handlers.hpp>
+#include <framework/tcp_service.hpp>
+#include <framework/tcp_service_connection.hpp>
+#include <framework/tcp_service_handlers.hpp>
 
 using namespace framework;
 
@@ -850,4 +853,87 @@ TEST_F(test_server, basic_tcp_endpoint_check) {
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   ASSERT_TRUE(client_disconnected_.load());
+}
+
+TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
+  const auto _endpoint = server_->serve(std::make_shared<tcp_endpoint_handlers>(
+      [&](shared_tcp_endpoint, shared_tcp_endpoint_connection) -> async_of<void> {
+        client_connected_.store(true);
+        co_return;
+      },
+      [&](shared_tcp_endpoint, shared_tcp_endpoint_connection) -> async_of<void> {
+        client_accepted_.store(true);
+        co_return;
+      },
+      [&](shared_tcp_endpoint, shared_tcp_endpoint_connection, const std::string _payload) -> async_of<void> {
+        client_read_.store(true);
+        co_return;
+      },
+      [&](shared_tcp_endpoint, shared_tcp_endpoint_connection) -> async_of<void> {
+        client_write_.store(true);
+        co_return;
+      },
+      [&](shared_tcp_endpoint, shared_tcp_endpoint_connection) -> async_of<void> {
+        client_disconnected_.store(true);
+        co_return;
+      }));
+
+  auto _wait_for_flag = [](auto _pred, int _timeout_ms) -> bool {
+    const int _step_ms = 5;
+    int _waited = 0;
+    while (!_pred() && _waited < _timeout_ms) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(_step_ms));
+      _waited += _step_ms;
+    }
+    return _pred();
+  };
+
+  ASSERT_TRUE(_wait_for_flag([&_endpoint]() { return _endpoint->get_running(); }, 2000));
+
+  auto _service = server_->connect(std::make_shared<tcp_service_handlers>(
+                                       [&](shared_tcp_service, shared_tcp_service_connection _conn) -> async_of<void> {
+                                         std::string _ping = "ping";
+                                         _conn->invoke(_ping);
+                                         co_return;
+                                       },
+                                       nullptr,
+                                       [&](shared_tcp_service, shared_tcp_service_connection, std::string _payload) -> async_of<void> {
+                                         if (_payload == "pong") {
+                                           client_write_.store(true);
+                                         }
+                                         co_return;
+                                       },
+                                       nullptr,
+                                       [&](shared_tcp_service, shared_tcp_service_connection) -> async_of<void> {
+                                         client_disconnected_.store(true);
+                                         co_return;
+                                       },
+                                       nullptr),
+                                   "127.0.0.1", _endpoint->get_port());
+
+  ASSERT_TRUE(_wait_for_flag([&]() { return client_connected_.load(); }, 2000) && "client_connected timed out");
+  ASSERT_TRUE(_wait_for_flag([&]() { return client_accepted_.load(); }, 2000) && "client_accepted timed out");
+  ASSERT_TRUE(_wait_for_flag([&]() { return client_read_.load(); }, 2000) && "client_read (ping) timed out");
+
+  auto _wait_for_snapshot_non_empty = [&]() -> bool {
+    const int _step_ms = 5;
+    int _waited = 0;
+    while (_service->snapshot().empty() && _waited < 1000) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(_step_ms));
+      _waited += _step_ms;
+    }
+    return !_service->snapshot().empty();
+  };
+  ASSERT_TRUE(_wait_for_snapshot_non_empty() && "service snapshot empty (no client connections)");
+
+  const auto _writer = _endpoint->snapshot().front();
+  ASSERT_NE(_writer, nullptr);
+  std::string _pong = "pong";
+  _writer->invoke(_pong);
+
+  ASSERT_TRUE(_wait_for_flag([&]() { return client_write_.load(); }, 2000) && "client_write (pong) timed out");
+
+  _service->stop_clients();
+
+  ASSERT_TRUE(_wait_for_flag([&]() { return client_disconnected_.load(); }, 2000) && "client_disconnected timed out");
 }

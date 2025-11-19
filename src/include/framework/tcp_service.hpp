@@ -38,6 +38,7 @@ class tcp_service : public std::enable_shared_from_this<tcp_service> {
   void set_port(unsigned short int port);
   bool get_running() const;
   void set_running(bool running);
+  void stop_clients();
   void add(shared_tcp_service_connection writer);
   void remove(uuid session_id);
   vector_of<shared_tcp_service_connection> snapshot();
