@@ -28,11 +28,13 @@ TEST(test_queue, can_handle_jobs) {
 
   std::atomic _task_executed{false};
 
-  _queue->add_task("purchase_order_created", [&_task_executed](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    _task_executed.store(true, std::memory_order_release);
-    co_return;
-  });
+  _queue->add_task(
+      "purchase_order_created",
+      [&_task_executed](auto& cancelled, auto& data) -> async_of<void> {
+        boost::ignore_unused(cancelled, data);
+        _task_executed.store(true, std::memory_order_release);
+        co_return;
+      });
 
   const auto _job = _queue->dispatch("purchase_order_created");
 
@@ -62,23 +64,29 @@ TEST(test_queue, can_handle_multiple_jobs) {
   atomic_of _second_task_executed{false};
   atomic_of _third_task_executed{false};
 
-  _queue->add_task("first_task", [&_first_task_executed](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    _first_task_executed.store(true, std::memory_order_release);
-    co_return;
-  });
+  _queue->add_task(
+      "first_task",
+      [&_first_task_executed](auto& cancelled, auto& data) -> async_of<void> {
+        boost::ignore_unused(cancelled, data);
+        _first_task_executed.store(true, std::memory_order_release);
+        co_return;
+      });
 
-  _queue->add_task("second_task", [&_second_task_executed](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    _second_task_executed.store(true, std::memory_order_release);
-    co_return;
-  });
+  _queue->add_task(
+      "second_task",
+      [&_second_task_executed](auto& cancelled, auto& data) -> async_of<void> {
+        boost::ignore_unused(cancelled, data);
+        _second_task_executed.store(true, std::memory_order_release);
+        co_return;
+      });
 
-  _queue->add_task("third_task", [&_third_task_executed](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    _third_task_executed.store(true, std::memory_order_release);
-    co_return;
-  });
+  _queue->add_task(
+      "third_task",
+      [&_third_task_executed](auto& cancelled, auto& data) -> async_of<void> {
+        boost::ignore_unused(cancelled, data);
+        _third_task_executed.store(true, std::memory_order_release);
+        co_return;
+      });
 
   const auto _first_job = _queue->dispatch("first_task");
   const auto _second_job = _queue->dispatch("second_task");
@@ -104,11 +112,13 @@ TEST(test_queue, can_handle_multiple_jobs_on_multiple_workers) {
 
   std::atomic<std::uint64_t> _tasks_executed{0};
 
-  _queue->add_task("item", [&_tasks_executed](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    _tasks_executed.fetch_add(1, std::memory_order_relaxed);
-    co_return;
-  });
+  _queue->add_task(
+      "item",
+      [&_tasks_executed](auto& cancelled, auto& data) -> async_of<void> {
+        boost::ignore_unused(cancelled, data);
+        _tasks_executed.fetch_add(1, std::memory_order_relaxed);
+        co_return;
+      });
 
   for (std::uint32_t i = 0; i < 2048; ++i) {
     _queue->dispatch("item");
@@ -148,17 +158,19 @@ TEST(test_queue, can_be_cancelled) {
 
   std::atomic<std::size_t> _jobs_executed;
 
-  _queue->add_task("cancel", [&_queue](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    _queue->cancel();
-    co_return;
-  });
+  _queue->add_task("cancel",
+                   [&_queue](auto& cancelled, auto& data) -> async_of<void> {
+                     boost::ignore_unused(cancelled, data);
+                     _queue->cancel();
+                     co_return;
+                   });
 
-  _queue->add_task("item", [&_jobs_executed](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    _jobs_executed.fetch_add(1, std::memory_order_relaxed);
-    co_return;
-  });
+  _queue->add_task(
+      "item", [&_jobs_executed](auto& cancelled, auto& data) -> async_of<void> {
+        boost::ignore_unused(cancelled, data);
+        _jobs_executed.fetch_add(1, std::memory_order_relaxed);
+        co_return;
+      });
 
   _queue->dispatch("cancel");
 
@@ -171,7 +183,8 @@ TEST(test_queue, can_be_cancelled) {
   ASSERT_LT(_jobs_executed.load(std::memory_order_relaxed), 256);
   ASSERT_EQ(_queue->number_of_jobs(), 256 + 1);
 
-  std::cout << _jobs_executed.load(std::memory_order_relaxed) << " jobs has been processed before cancellation" << std::endl;
+  std::cout << _jobs_executed.load(std::memory_order_relaxed)
+            << " jobs has been processed before cancellation" << std::endl;
 }
 
 class custom_exception final : public std::exception {};

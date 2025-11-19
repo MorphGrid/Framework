@@ -27,11 +27,13 @@ vector_of<http_verb> tasks_controller::verbs() {
 
 shared_controller tasks_controller::make() {
   return std::make_shared<controller>(
-      [](const shared_state state, const request_type request, const params_type params,
+      [](const shared_state state, const request_type request,
+         const params_type params,
          const shared_auth auth) -> async_of<response_type> {
         const auto _queue_name = params.at("queue_name");
         if (!state->queue_exists(_queue_name)) {
-          response_empty_type _response{http_status::not_found, request.version()};
+          response_empty_type _response{http_status::not_found,
+                                        request.version()};
           _response.prepare_payload();
           co_return _response;
         }
@@ -41,7 +43,8 @@ shared_controller tasks_controller::make() {
         _tasks.reserve(_queue->number_of_tasks());
 
         for (auto const &[_name, _task] : _queue->get_tasks()) {
-          _tasks.push_back(object({{"id", to_string(_task->get_id())}, {"name", _name}}));
+          _tasks.push_back(
+              object({{"id", to_string(_task->get_id())}, {"name", _name}}));
         }
 
         response_type _response{http_status::ok, request.version()};

@@ -64,7 +64,8 @@ TEST(test_jwt, throws_error_on_invalid_token) {
 }
 
 TEST(test_jwt, can_parse_tokens) {
-  const std::string _key = base64url_decode("-66WcolkZd8-oHejFFj1EUhxg3-8UWErNkgMqCwLDEI");
+  const std::string _key =
+      base64url_decode("-66WcolkZd8-oHejFFj1EUhxg3-8UWErNkgMqCwLDEI");
   const std::string _bearer =
       "Bearer "
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
@@ -74,8 +75,10 @@ TEST(test_jwt, can_parse_tokens) {
   bool throws = false;
   try {
     const auto _jwt = jwt::from(_bearer, _key);
-    ASSERT_EQ(to_string(_jwt->get_id()), "c4447564-4ac9-4e5c-ae15-bd196cee29bb");
-    ASSERT_EQ(to_string(_jwt->get_sub()), "807d9a27-8226-489e-8ff4-dcfd902ccde6");
+    ASSERT_EQ(to_string(_jwt->get_id()),
+              "c4447564-4ac9-4e5c-ae15-bd196cee29bb");
+    ASSERT_EQ(to_string(_jwt->get_sub()),
+              "807d9a27-8226-489e-8ff4-dcfd902ccde6");
     ASSERT_EQ(_jwt->get_payload().at("iat").as_int64(), 1762445047);
   } catch (errors::parse_error &) {
     throws = true;

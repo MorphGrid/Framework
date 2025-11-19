@@ -28,11 +28,13 @@ vector_of<http_verb> jobs_controller::verbs() {
 
 shared_controller jobs_controller::make() {
   return std::make_shared<controller>(
-      [](const shared_state state, const request_type request, const params_type params,
+      [](const shared_state state, const request_type request,
+         const params_type params,
          const shared_auth auth) -> async_of<response_type> {
         const auto _queue_name = params.at("queue_name");
         if (!state->queue_exists(_queue_name)) {
-          response_empty_type _response{http_status::not_found, request.version()};
+          response_empty_type _response{http_status::not_found,
+                                        request.version()};
           _response.prepare_payload();
           co_return _response;
         }

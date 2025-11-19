@@ -52,7 +52,12 @@ TEST(test_encoding_base64, multiple_of_three) {
 
 TEST(test_encoding_base64, reversibility) {
   std::vector<std::string> _samples = {
-      "", "Hello", "Man", "Base64 test string", "1234567890", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"};
+      "",
+      "Hello",
+      "Man",
+      "Base64 test string",
+      "1234567890",
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"};
 
   for (const auto& _s : _samples) {
     std::string _encoded = base64_encode(_s);

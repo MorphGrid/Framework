@@ -20,7 +20,8 @@
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<void> http_listener(task_group& task_group, shared_state state, endpoint endpoint);
+async_of<void> http_listener(task_group& task_group, shared_state state,
+                             endpoint endpoint);
 }  // namespace framework
 
 #endif  // FRAMEWORK_HTTP_LISTENER_HPP

@@ -30,41 +30,58 @@
 #include <framework/state.hpp>
 #include <framework/task_group.hpp>
 #include <framework/tcp_client.hpp>
-#include <framework/tcp_endpoint.hpp>
 #include <framework/tcp_listener.hpp>
 #include <framework/tcp_service.hpp>
 
 namespace framework {
-server::server() : task_group_(std::make_shared<task_group>(state_->ioc().get_executor())) {}
+server::server()
+    : task_group_(std::make_shared<task_group>(state_->ioc().get_executor())) {}
 
 void server::start(const unsigned short int port) {
   auto const _address = boost::asio::ip::make_address("0.0.0.0");
 
   const auto _router = state_->get_router();
 
-  _router->add(std::make_shared<route>(controllers::status_controller::verbs(), "/api/status", controllers::status_controller::make()))
-      ->add(std::make_shared<route>(controllers::user_controller::verbs(), "/api/user", controllers::user_controller::make()))
-      ->add(std::make_shared<route>(controllers::auth::attempt_controller::verbs(), "/api/auth/attempt",
-                                    controllers::auth::attempt_controller::make()))
-      ->add(std::make_shared<route>(controllers::queues::index_controller::verbs(), "/api/queues",
-                                    controllers::queues::index_controller::make()))
-      ->add(std::make_shared<route>(controllers::queues::jobs_controller::verbs(), "/api/queues/{queue_name}/jobs",
-                                    controllers::queues::jobs_controller::make()))
-      ->add(std::make_shared<route>(controllers::queues::tasks_controller::verbs(), "/api/queues/{queue_name}/tasks",
-                                    controllers::queues::tasks_controller::make()))
-      ->add(std::make_shared<route>(controllers::queues::workers_controller::verbs(), "/api/queues/{queue_name}/workers",
-                                    controllers::queues::workers_controller::make()))
-      ->add(std::make_shared<route>(controllers::queues::dispatch_controller::verbs(), "/api/queues/{queue_name}/dispatch",
-                                    controllers::queues::dispatch_controller::make()));
+  _router
+      ->add(std::make_shared<route>(controllers::status_controller::verbs(),
+                                    "/api/status",
+                                    controllers::status_controller::make()))
+      ->add(std::make_shared<route>(controllers::user_controller::verbs(),
+                                    "/api/user",
+                                    controllers::user_controller::make()))
+      ->add(std::make_shared<route>(
+          controllers::auth::attempt_controller::verbs(), "/api/auth/attempt",
+          controllers::auth::attempt_controller::make()))
+      ->add(std::make_shared<route>(
+          controllers::queues::index_controller::verbs(), "/api/queues",
+          controllers::queues::index_controller::make()))
+      ->add(
+          std::make_shared<route>(controllers::queues::jobs_controller::verbs(),
+                                  "/api/queues/{queue_name}/jobs",
+                                  controllers::queues::jobs_controller::make()))
+      ->add(std::make_shared<route>(
+          controllers::queues::tasks_controller::verbs(),
+          "/api/queues/{queue_name}/tasks",
+          controllers::queues::tasks_controller::make()))
+      ->add(std::make_shared<route>(
+          controllers::queues::workers_controller::verbs(),
+          "/api/queues/{queue_name}/workers",
+          controllers::queues::workers_controller::make()))
+      ->add(std::make_shared<route>(
+          controllers::queues::dispatch_controller::verbs(),
+          "/api/queues/{queue_name}/dispatch",
+          controllers::queues::dispatch_controller::make()));
 
   const auto _queue = state_->get_queue("metrics");
-  _queue->add_task("increase_requests", [this](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    ++this->get_state()->get_metrics()->_requests;
-    co_return;
-  });
+  _queue->add_task("increase_requests",
+                   [this](auto& cancelled, auto& data) -> async_of<void> {
+                     boost::ignore_unused(cancelled, data);
+                     ++this->get_state()->get_metrics()->_requests;
+                     co_return;
+                   });
 
-  co_spawn(make_strand(state_->ioc()), http_listener(*task_group_, state_, endpoint{_address, port}),
+  co_spawn(make_strand(state_->ioc()),
+           http_listener(*task_group_, state_, endpoint{_address, port}),
            task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
              if (throwable) {
                try {
@@ -77,42 +94,48 @@ void server::start(const unsigned short int port) {
              }
            }));
 
-  co_spawn(make_strand(state_->ioc()), signal_handler(*task_group_), boost::asio::detached);
+  co_spawn(make_strand(state_->ioc()), signal_handler(*task_group_),
+           boost::asio::detached);
 
   state_->get_connection_pool()->async_run(boost::asio::detached);
 
   state_->run();
 }
 
-shared_of<tcp_endpoint> server::serve(shared_of<tcp_handlers<tcp_endpoint, tcp_connection<tcp_endpoint>>> callbacks,
-                                      unsigned short int port) const {
+shared_of<tcp_service> server::serve(shared_of<tcp_handlers> callbacks,
+                                     unsigned short int port) const {
   auto _endpoint_id = state_->generate_id();
-  const auto _endpoint = std::make_shared<tcp_endpoint>(_endpoint_id, port, callbacks);
+  const auto _endpoint =
+      std::make_shared<tcp_service>(_endpoint_id, "0.0.0.0", port, callbacks);
   state_->endpoints().try_emplace(_endpoint_id, _endpoint);
 
-  co_spawn(make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _endpoint),
-           task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
-             if (throwable) {
-               try {
-                 std::rethrow_exception(throwable);
-               } catch (const std::system_error& e) {
-                 std::cerr << "[tcp_endpoint] Boost error: " << e.what() << "\n";
-               } catch (...) {
-                 std::cerr << "[tcp_endpoint] Unknown exception.\n";
-               }
-             }
-           }));
+  co_spawn(
+      make_strand(state_->ioc()), tcp_listener(*task_group_, state_, _endpoint),
+      task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
+        if (throwable) {
+          try {
+            std::rethrow_exception(throwable);
+          } catch (const std::system_error& e) {
+            std::cerr << "[tcp_endpoint] Boost error: " << e.what() << "\n";
+          } catch (...) {
+            std::cerr << "[tcp_endpoint] Unknown exception.\n";
+          }
+        }
+      }));
 
   return _endpoint;
 }
 
-shared_of<tcp_service> server::connect(shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> callbacks, std::string host,
+shared_of<tcp_service> server::connect(shared_of<tcp_handlers> callbacks,
+                                       std::string host,
                                        unsigned short int port) const {
   auto _service_id = state_->generate_id();
-  const auto _service = std::make_shared<tcp_service>(_service_id, host, port, callbacks);
+  const auto _service =
+      std::make_shared<tcp_service>(_service_id, host, port, callbacks);
   state_->services().try_emplace(_service_id, _service);
 
-  co_spawn(make_strand(state_->ioc()), tcp_client(*task_group_, state_, _service),
+  co_spawn(make_strand(state_->ioc()),
+           tcp_client(*task_group_, state_, _service),
            task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
              if (throwable) {
                try {

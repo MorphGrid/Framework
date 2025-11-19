@@ -27,13 +27,15 @@ vector_of<http_verb> dispatch_controller::verbs() {
 
 shared_controller dispatch_controller::make() {
   return std::make_shared<controller>(
-      [](const shared_state state, const request_type request, const params_type params,
+      [](const shared_state state, const request_type request,
+         const params_type params,
          const shared_auth auth) -> async_of<response_type> {
         const auto _queue_name = params.at("queue_name");
         auto _body = boost::json::parse(request.body());
         std::string _task{_body.as_object().at("task").as_string()};
         if (!state->queue_exists(_queue_name)) {
-          response_empty_type _response{http_status::not_found, request.version()};
+          response_empty_type _response{http_status::not_found,
+                                        request.version()};
           _response.prepare_payload();
           co_return _response;
         }
@@ -47,7 +49,8 @@ shared_controller dispatch_controller::make() {
           co_return _response;
         } catch (const errors::task_not_found &e) {
           boost::ignore_unused(e);
-          response_empty_type _response{http_status::not_found, request.version()};
+          response_empty_type _response{http_status::not_found,
+                                        request.version()};
           _response.prepare_payload();
           co_return _response;
         }

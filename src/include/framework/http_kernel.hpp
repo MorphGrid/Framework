@@ -20,7 +20,8 @@
 #include <framework/support.hpp>
 
 namespace framework {
-async_of<message> http_kernel(shared_state state, request_type request) noexcept;
+async_of<message> http_kernel(shared_state state,
+                              request_type request) noexcept;
 }  // namespace framework
 
 #endif  // FRAMEWORK_HTTP_KERNEL_HPP

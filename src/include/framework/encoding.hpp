@@ -21,16 +21,19 @@
 
 namespace framework {
 
-constexpr std::string_view BASE64_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+constexpr std::string_view BASE64_CHARSET =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 inline constexpr std::array<int, 256> BASE64_CHARSET_MAP = []() {
   std::array<int, 256> _map{};
   _map.fill(-1);
-  for (std::size_t i = 0; i < 64; ++i) _map[static_cast<unsigned char>(BASE64_CHARSET[i])] = static_cast<int>(i);
+  for (std::size_t i = 0; i < 64; ++i)
+    _map[static_cast<unsigned char>(BASE64_CHARSET[i])] = static_cast<int>(i);
   return _map;
 }();
 
-inline std::string base64_encode(const std::string& input, const bool padding = true) noexcept {
+inline std::string base64_encode(const std::string& input,
+                                 const bool padding = true) noexcept {
   const std::size_t _full_blocks = input.size() / 3;
   const std::size_t _remainder = input.size() % 3;
   const std::size_t _output_size = _full_blocks * 4 + (_remainder ? 4 : 0);
@@ -49,7 +52,8 @@ inline std::string base64_encode(const std::string& input, const bool padding = 
       _value_b -= 6;
     }
   }
-  if (_value_b > -6) _output.push_back(BASE64_CHARSET[((_value << 8) >> (_value_b + 8)) & 0x3F]);
+  if (_value_b > -6)
+    _output.push_back(BASE64_CHARSET[((_value << 8) >> (_value_b + 8)) & 0x3F]);
 
   if (padding)
     while (_output.size() % 4 != 0) _output.push_back('=');
@@ -71,7 +75,8 @@ inline std::string base64_decode(const std::string& input) noexcept {
   int _value_b = -8;
   for (const char _character : input) {
     if (_character == '=') break;
-    const int _in_map_value = BASE64_CHARSET_MAP[static_cast<unsigned char>(_character)];
+    const int _in_map_value =
+        BASE64_CHARSET_MAP[static_cast<unsigned char>(_character)];
     if (_in_map_value == -1) continue;
     _value = (_value << 6) + _in_map_value;
     _value_b += 6;
@@ -83,16 +88,20 @@ inline std::string base64_decode(const std::string& input) noexcept {
   return _output;
 }
 
-constexpr std::string_view BASE64URL_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+constexpr std::string_view BASE64URL_CHARSET =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 inline constexpr std::array<int, 256> BASE64URL_CHARSET_MAP = []() {
   std::array<int, 256> _map{};
   _map.fill(-1);
-  for (std::size_t i = 0; i < 64; ++i) _map[static_cast<unsigned char>(BASE64URL_CHARSET[i])] = static_cast<int>(i);
+  for (std::size_t i = 0; i < 64; ++i)
+    _map[static_cast<unsigned char>(BASE64URL_CHARSET[i])] =
+        static_cast<int>(i);
   return _map;
 }();
 
-inline std::string base64url_encode(const std::string& input, const bool padding = true) noexcept {
+inline std::string base64url_encode(const std::string& input,
+                                    const bool padding = true) noexcept {
   std::string _output;
   int _value = 0;
   int _value_b = -6;
@@ -105,7 +114,9 @@ inline std::string base64url_encode(const std::string& input, const bool padding
       _value_b -= 6;
     }
   }
-  if (_value_b > -6) _output.push_back(BASE64URL_CHARSET[((_value << 8) >> (_value_b + 8)) & 0x3F]);
+  if (_value_b > -6)
+    _output.push_back(
+        BASE64URL_CHARSET[((_value << 8) >> (_value_b + 8)) & 0x3F]);
 
   if (padding)
     while (_output.size() % 4 != 0) _output.push_back('=');
@@ -119,7 +130,8 @@ inline std::string base64url_decode(const std::string& input) noexcept {
   int _value_b = -8;
   for (const char _character : input) {
     if (_character == '=') break;
-    const int _in_map_value = BASE64URL_CHARSET_MAP[static_cast<unsigned char>(_character)];
+    const int _in_map_value =
+        BASE64URL_CHARSET_MAP[static_cast<unsigned char>(_character)];
     if (_in_map_value == -1) continue;
     _value = (_value << 6) + _in_map_value;
     _value_b += 6;

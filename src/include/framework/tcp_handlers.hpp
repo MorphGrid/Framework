@@ -20,17 +20,23 @@
 #include <framework/support.hpp>
 
 namespace framework {
-template <typename Service, typename Connection>
-class tcp_handlers : public std::enable_shared_from_this<tcp_handlers<Service, Connection>> {
+class tcp_handlers : public std::enable_shared_from_this<tcp_handlers> {
  public:
-  using handler_type = std::function<async_of<void>(std::shared_ptr<Service> service, std::shared_ptr<Connection> connection)>;
-  using read_handler_type =
-      std::function<async_of<void>(std::shared_ptr<Service> service, std::shared_ptr<Connection> connection, std::string payload)>;
-  using error_handler_type = std::function<async_of<void>(std::shared_ptr<Service> service, std::shared_ptr<Connection> connection,
-                                                          const std::exception &exception)>;
+  using handler_type = std::function<async_of<void>(shared_of<tcp_service>,
+                                                    shared_of<tcp_connection>)>;
+  using read_handler_type = std::function<async_of<void>(
+      shared_of<tcp_service>, shared_of<tcp_connection>,
+      std::string /* data */)>;
+  using error_handler_type = std::function<async_of<void>(
+      shared_of<tcp_service> service, shared_of<tcp_connection> connection,
+      const std::exception &exception)>;
 
-  explicit tcp_handlers(handler_type on_connect = nullptr, handler_type on_accepted = nullptr, read_handler_type on_read = nullptr,
-                        handler_type on_write = nullptr, handler_type on_disconnected = nullptr, error_handler_type on_error = nullptr)
+  explicit tcp_handlers(handler_type on_connect = nullptr,
+                        handler_type on_accepted = nullptr,
+                        read_handler_type on_read = nullptr,
+                        handler_type on_write = nullptr,
+                        handler_type on_disconnected = nullptr,
+                        error_handler_type on_error = nullptr)
       : on_connect_(on_connect),
         on_accepted_(on_accepted),
         on_read_(on_read),

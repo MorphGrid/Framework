@@ -23,11 +23,12 @@ using namespace framework;
 TEST(test_worker, can_run) {
   boost::asio::io_context _ioc;
   std::atomic _executed{false};
-  const auto _task = std::make_shared<task>([&_executed](auto& cancelled, auto& data) -> async_of<void> {
-    boost::ignore_unused(cancelled, data);
-    _executed.store(true, std::memory_order_release);
-    co_return;
-  });
+  const auto _task = std::make_shared<task>(
+      [&_executed](auto& cancelled, auto& data) -> async_of<void> {
+        boost::ignore_unused(cancelled, data);
+        _executed.store(true, std::memory_order_release);
+        co_return;
+      });
   const auto _worker = std::make_shared<worker>(make_strand(_ioc));
   auto fut = co_spawn(
       _ioc,

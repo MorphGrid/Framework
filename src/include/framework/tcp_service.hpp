@@ -26,13 +26,13 @@ class tcp_service : public std::enable_shared_from_this<tcp_service> {
   std::string host_;
   unsigned short int port_;
   std::mutex mutex_;
-  vector_of<shared_of<tcp_connection<tcp_service>>> writers_;
-  shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> callback_;
+  vector_of<shared_of<tcp_connection>> writers_;
+  shared_of<tcp_handlers> callback_;
 
  public:
   explicit tcp_service(uuid id, std::string host, unsigned short int port = 0,
-                       shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> handlers = nullptr);
-  shared_of<tcp_handlers<tcp_service, tcp_connection<tcp_service>>> handlers() const;
+                       shared_of<tcp_handlers> handlers = nullptr);
+  shared_of<tcp_handlers> handlers() const;
   uuid get_id() const;
   std::string get_host() const;
   unsigned short int get_port() const;
@@ -40,9 +40,9 @@ class tcp_service : public std::enable_shared_from_this<tcp_service> {
   bool get_running() const;
   void set_running(bool running);
   void stop_clients();
-  void add(shared_of<tcp_connection<tcp_service>> writer);
+  void add(shared_of<tcp_connection> writer);
   void remove(uuid session_id);
-  vector_of<shared_of<tcp_connection<tcp_service>>> snapshot();
+  vector_of<shared_of<tcp_connection>> snapshot();
 };
 }  // namespace framework
 

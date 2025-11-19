@@ -21,23 +21,28 @@
 #include <framework/tcp_session.hpp>
 
 namespace framework {
-async_of<void> single_connection(shared_state state, shared_of<tcp_service> service, shared_of<tcp_executor> exec) {
+async_of<void> single_connection(shared_state state,
+                                 shared_of<tcp_service> service,
+                                 shared_of<tcp_executor> exec) {
   const auto _host = service->get_host();
   const auto _port = std::to_string(service->get_port());
 
   boost::asio::ip::tcp::resolver _resolver(exec->get_inner_executor());
-  auto [_resolve_ec, _resolve_iterator] = co_await _resolver.async_resolve(_host, _port, boost::asio::as_tuple);
+  auto [_resolve_ec, _resolve_iterator] =
+      co_await _resolver.async_resolve(_host, _port, boost::asio::as_tuple);
   if (_resolve_ec) throw boost::system::system_error(_resolve_ec);
 
   boost::asio::ip::tcp::socket _socket(exec->get_inner_executor());
 
-  if (auto [_connection_ec, _connection_iterator] = co_await async_connect(_socket, _resolve_iterator, boost::asio::as_tuple);
+  if (auto [_connection_ec, _connection_iterator] = co_await async_connect(
+          _socket, _resolve_iterator, boost::asio::as_tuple);
       _connection_ec)
     throw boost::system::system_error(_connection_ec);
 
   auto _stream = std::make_shared<tcp_stream>(std::move(_socket));
   const uuid _session_id = state->generate_id();
-  auto _connection = std::make_shared<tcp_connection<tcp_service>>(_session_id, exec, _stream, service);
+  auto _connection =
+      std::make_shared<tcp_connection>(_session_id, exec, _stream, service);
   service->add(_connection);
 
   if (service->handlers() && service->handlers()->on_connect()) {
@@ -47,7 +52,7 @@ async_of<void> single_connection(shared_state state, shared_of<tcp_service> serv
     co_await service->handlers()->on_accepted()(service, _connection);
   }
 
-  co_await tcp_session<shared_of<tcp_service>, shared_of<tcp_connection<tcp_service>>>(state, service, _connection);
+  co_await tcp_session(state, service, _connection);
   if (service->handlers() && service->handlers()->on_disconnected()) {
     try {
       co_await service->handlers()->on_disconnected()(service, _connection);
@@ -57,23 +62,28 @@ async_of<void> single_connection(shared_state state, shared_of<tcp_service> serv
   co_return;
 }
 
-async_of<void> tcp_client(task_group& task_group, shared_state state, shared_of<tcp_service> service) {
+async_of<void> tcp_client(task_group& task_group, shared_state state,
+                          shared_of<tcp_service> service) {
   const auto _executor = co_await boost::asio::this_coro::executor;
 
   service->set_running(true);
 
   for (int _i = 0; _i < 4; ++_i) {
-    auto _strand = std::make_shared<tcp_executor>(make_strand(_executor.get_inner_executor()));
+    auto _strand = std::make_shared<tcp_executor>(
+        make_strand(_executor.get_inner_executor()));
 
-    co_spawn(*_strand, single_connection(state, service, _strand), task_group.adapt([](const std::exception_ptr& exception) {
-      if (exception) {
-        try {
-          std::rethrow_exception(exception);
-        } catch (const std::exception& error) {
-          std::cerr << "[tcp_client] connection error: " << error.what() << "\n";
-        }
-      }
-    }));
+    co_spawn(*_strand, single_connection(state, service, _strand),
+             task_group.adapt([](const std::exception_ptr& exception) {
+               if (exception) {
+                 try {
+                   std::rethrow_exception(exception);
+                 } catch (const std::exception& error) {
+                   std::cerr
+                       << "[tcp_client] connection error: " << error.what()
+                       << "\n";
+                 }
+               }
+             }));
   }
 
   co_return;
