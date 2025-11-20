@@ -71,10 +71,6 @@ map_hash_of<std::string, shared_queue, std::less<>>& state::queues() noexcept {
 }
 
 std::unordered_map<uuid, shared_of<tcp_service>, boost::hash<uuid>>&
-state::endpoints() noexcept {
-  return endpoints_;
-}
-std::unordered_map<uuid, shared_of<tcp_service>, boost::hash<uuid>>&
 state::services() noexcept {
   return services_;
 }

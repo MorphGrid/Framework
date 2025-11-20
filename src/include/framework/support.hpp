@@ -48,7 +48,6 @@
 
 namespace framework {
 #ifdef DEBUG_ENABLED
-inline std::mutex LOG_MUTEX;
 #define LOG(msg)                                                               \
   do {                                                                         \
     std::osyncstream(std::cout) << "[" << __FILE__ << ":" << __LINE__ << " - " \
