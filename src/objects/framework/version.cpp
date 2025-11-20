@@ -15,5 +15,5 @@
 #include <framework/version.hpp>
 
 namespace framework {
-std::string get_version() noexcept { return "1.0.1"; }
+std::string get_version() noexcept { return "1.0.2"; }
 }  // namespace framework

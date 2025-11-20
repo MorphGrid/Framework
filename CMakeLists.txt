@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(framework VERSION 1.0.1 LANGUAGES CXX)
+project(framework VERSION 1.0.2 LANGUAGES CXX)
 
 option(ENABLE_TESTS "Enable testing" ON)
 option(ENABLE_DEBUG "Enable debugging" ON)
