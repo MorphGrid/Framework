@@ -36,20 +36,14 @@ class tcp_handlers : public std::enable_shared_from_this<tcp_handlers> {
                         read_handler_type on_read = nullptr,
                         handler_type on_write = nullptr,
                         handler_type on_disconnected = nullptr,
-                        error_handler_type on_error = nullptr)
-      : on_connect_(std::move(on_connect)),
-        on_accepted_(std::move(on_accepted)),
-        on_read_(std::move(on_read)),
-        on_write_(std::move(on_write)),
-        on_disconnected_(std::move(on_disconnected)),
-        on_error_(std::move(on_error)) {}
+                        error_handler_type on_error = nullptr);
 
-  handler_type on_connect() const { return on_connect_; }
-  handler_type on_accepted() const { return on_accepted_; }
-  read_handler_type on_read() const { return on_read_; }
-  handler_type on_write() const { return on_write_; }
-  handler_type on_disconnected() const { return on_disconnected_; }
-  error_handler_type on_error() const { return on_error_; }
+  handler_type on_connect() const;
+  handler_type on_accepted() const;
+  read_handler_type on_read() const;
+  handler_type on_write() const;
+  handler_type on_disconnected() const;
+  error_handler_type on_error() const;
 
  private:
   handler_type on_connect_;
