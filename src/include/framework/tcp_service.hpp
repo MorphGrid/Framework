@@ -22,18 +22,24 @@
 namespace framework {
 class tcp_service : public std::enable_shared_from_this<tcp_service> {
   atomic_of<bool> running_{false};
+  atomic_of<int> scale_{0};
   uuid id_;
   std::string host_;
   unsigned short int port_;
   std::mutex mutex_;
   vector_of<shared_of<tcp_connection>> writers_;
   shared_of<tcp_handlers> callback_;
+  shared_of<task_group> task_group_;
 
  public:
   explicit tcp_service(uuid id, std::string host, unsigned short int port = 0,
                        shared_of<tcp_handlers> handlers = nullptr);
   shared_of<tcp_handlers> handlers() const;
+  void set_task_group(shared_of<task_group> tg);
+  shared_of<task_group> get_task_group() const;
+  void stop();
   uuid get_id() const;
+  int get_scale() const;
   std::string get_host() const;
   unsigned short int get_port() const;
   void set_port(unsigned short int port);
@@ -41,7 +47,9 @@ class tcp_service : public std::enable_shared_from_this<tcp_service> {
   void set_running(bool running);
   void stop_clients();
   void add(shared_of<tcp_connection> writer);
-  void remove(uuid session_id);
+  bool remove(uuid session_id);
+  void scale_to(int quantity);
+  bool contains(uuid session_id);
   vector_of<shared_of<tcp_connection>> snapshot();
 };
 }  // namespace framework

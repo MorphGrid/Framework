@@ -106,34 +106,42 @@ void server::start(const unsigned short int port) {
 
 shared_of<tcp_service> server::bind(const tcp_kind kind, std::string host,
                                     unsigned short int port,
-                                    shared_of<tcp_handlers> callbacks) const {
+                                    shared_of<tcp_handlers> callbacks,
+                                    unsigned short int connections) const {
   auto _service_id = state_->generate_id();
   const auto _service =
       std::make_shared<tcp_service>(_service_id, host, port, callbacks);
+  _service->scale_to(connections);
   state_->services().try_emplace(_service_id, _service);
+
+  const auto _service_task_group =
+      std::make_shared<task_group>(state_->ioc().get_executor());
+  _service->set_task_group(_service_task_group);
 
   std::optional<async_of<void>> _handler;
   switch (kind) {
     case tcp_kind::SERVER:
-      _handler.emplace(tcp_listener(*task_group_, state_, _service));
+      _handler.emplace(tcp_listener(*_service_task_group, state_, _service));
       break;
     case tcp_kind::CLIENT:
-      _handler.emplace(tcp_client(*task_group_, state_, _service));
+      _handler.emplace(tcp_client(*_service_task_group, state_, _service));
       break;
   }
 
   co_spawn(make_strand(state_->ioc()), std::move(_handler.value()),
-           task_group_->adapt([](const std::exception_ptr& throwable) noexcept {
-             if (throwable) {
-               try {
-                 std::rethrow_exception(throwable);
-               } catch (const std::system_error& e) {
-                 std::cerr << "[tcp_client] Boost error: " << e.what() << "\n";
-               } catch (...) {
-                 std::cerr << "[tcp_client] Unknown exception.\n";
-               }
-             }
-           }));
+           _service_task_group->adapt(
+               [](const std::exception_ptr& throwable) noexcept {
+                 if (throwable) {
+                   try {
+                     std::rethrow_exception(throwable);
+                   } catch (const std::system_error& e) {
+                     std::cerr << "[tcp_service] Boost error: " << e.what()
+                               << "\n";
+                   } catch (...) {
+                     std::cerr << "[tcp_service] Unknown exception.\n";
+                   }
+                 }
+               }));
 
   return _service;
 }

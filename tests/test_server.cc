@@ -1139,7 +1139,6 @@ TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
   while (!_service->get_running()) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
-
   ASSERT_TRUE(
       _wait_for_flag([&]() { return client_connected_.load(); }, 2000) &&
       "client_connected timed out");
