@@ -1167,7 +1167,8 @@ TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
   ASSERT_TRUE(_wait_for_flag([&]() { return client_write_.load(); }, 2000) &&
               "client_write (pong) timed out");
 
-  _service->stop_clients();
+  _service->stop();
+  _endpoint->stop();
 
   ASSERT_TRUE(
       _wait_for_flag([&]() { return client_disconnected_.load(); }, 2000) &&
