@@ -42,10 +42,24 @@
 #include <ranges>
 #include <regex>
 #include <string>
+#include <syncstream>
 #include <thread>
 #include <vector>
 
 namespace framework {
+#ifdef DEBUG_ENABLED
+inline std::mutex LOG_MUTEX;
+#define LOG(msg)                                                               \
+  do {                                                                         \
+    std::osyncstream(std::cout) << "[" << __FILE__ << ":" << __LINE__ << " - " \
+                                << __func__ << "] " << msg << std::endl;       \
+  } while (0)
+#else
+#define LOG(x) \
+  do {         \
+  } while (0)
+#endif
+
 class task_group;
 
 class metrics;
@@ -78,6 +92,8 @@ using shared_jwt = std::shared_ptr<jwt>;
 class tcp_connection;
 class tcp_handlers;
 class tcp_service;
+
+enum class tcp_kind : int;
 
 class validator;
 

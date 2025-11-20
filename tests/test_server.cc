@@ -26,6 +26,7 @@
 #include <framework/task_group.hpp>
 #include <framework/tcp_connection.hpp>
 #include <framework/tcp_handlers.hpp>
+#include <framework/tcp_kind.hpp>
 #include <framework/tcp_service.hpp>
 
 using namespace framework;
@@ -967,29 +968,35 @@ TEST_F(test_server, can_handle_exceptions) {
 }
 
 TEST_F(test_server, basic_tcp_endpoint_check) {
-  auto _service = server_->serve(std::make_shared<tcp_handlers>(
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
-        client_connected_.store(true);
-        co_return;
-      },
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
-        client_accepted_.store(true);
-        co_return;
-      },
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>,
-          const std::string payload) -> async_of<void> {
-        boost::ignore_unused(payload);
-        client_read_.store(true);
-        co_return;
-      },
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
-        client_write_.store(true);
-        co_return;
-      },
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
-        client_disconnected_.store(true);
-        co_return;
-      }));
+  auto _service =
+      server_->bind(tcp_kind::SERVER, "0.0.0.0", 0,
+                    std::make_shared<tcp_handlers>(
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_connected_.store(true);
+                          co_return;
+                        },
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_accepted_.store(true);
+                          co_return;
+                        },
+                        [&](shared_of<tcp_service>, shared_of<tcp_connection>,
+                            const std::string payload) -> async_of<void> {
+                          boost::ignore_unused(payload);
+                          client_read_.store(true);
+                          co_return;
+                        },
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_write_.store(true);
+                          co_return;
+                        },
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_disconnected_.store(true);
+                          co_return;
+                        }));
 
   while (!_service->get_running()) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -1060,29 +1067,35 @@ TEST_F(test_server, basic_tcp_endpoint_check) {
 }
 
 TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
-  const auto _endpoint = server_->serve(std::make_shared<tcp_handlers>(
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
-        client_connected_.store(true);
-        co_return;
-      },
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
-        client_accepted_.store(true);
-        co_return;
-      },
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>,
-          const std::string payload) -> async_of<void> {
-        boost::ignore_unused(payload);
-        client_read_.store(true);
-        co_return;
-      },
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
-        client_write_.store(true);
-        co_return;
-      },
-      [&](shared_of<tcp_service>, shared_of<tcp_connection>) -> async_of<void> {
-        client_disconnected_.store(true);
-        co_return;
-      }));
+  const auto _endpoint =
+      server_->bind(tcp_kind::SERVER, "0.0.0.0", 0,
+                    std::make_shared<tcp_handlers>(
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_connected_.store(true);
+                          co_return;
+                        },
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_accepted_.store(true);
+                          co_return;
+                        },
+                        [&](shared_of<tcp_service>, shared_of<tcp_connection>,
+                            const std::string payload) -> async_of<void> {
+                          boost::ignore_unused(payload);
+                          client_read_.store(true);
+                          co_return;
+                        },
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_write_.store(true);
+                          co_return;
+                        },
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_disconnected_.store(true);
+                          co_return;
+                        }));
 
   auto _wait_for_flag = [](auto _pred, int _timeout_ms) -> bool {
     const int _step_ms = 5;
@@ -1094,34 +1107,38 @@ TEST_F(test_server, basic_tcp_endpoint_check_with_runtime_client) {
     return _pred();
   };
 
-  ASSERT_TRUE(_wait_for_flag(
-      [&_endpoint]() { return _endpoint->get_running(); }, 2000));
+  while (!_endpoint->get_running()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
 
-  auto _service = server_->connect(
-      std::make_shared<tcp_handlers>(
-          [&](shared_of<tcp_service>,
-              shared_of<tcp_connection> conn) -> async_of<void> {
-            std::string _ping = "ping";
-            conn->invoke(_ping);
-            co_return;
-          },
-          nullptr,
-          [&](shared_of<tcp_service>, shared_of<tcp_connection>,
-              std::string payload) -> async_of<void> {
-            if (payload == "pong") {
-              client_write_.store(true);
-            }
-            co_return;
-          },
-          nullptr,
-          [&](shared_of<tcp_service>,
-              shared_of<tcp_connection>) -> async_of<void> {
-            client_disconnected_.store(true);
-            co_return;
-          },
-          nullptr),
-      "127.0.0.1", _endpoint->get_port());
+  auto _service =
+      server_->bind(tcp_kind::CLIENT, "127.0.0.1", _endpoint->get_port(),
+                    std::make_shared<tcp_handlers>(
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection> conn) -> async_of<void> {
+                          std::string _ping = "ping";
+                          conn->invoke(_ping);
+                          co_return;
+                        },
+                        nullptr,
+                        [&](shared_of<tcp_service>, shared_of<tcp_connection>,
+                            std::string payload) -> async_of<void> {
+                          if (payload == "pong") {
+                            client_write_.store(true);
+                          }
+                          co_return;
+                        },
+                        nullptr,
+                        [&](shared_of<tcp_service>,
+                            shared_of<tcp_connection>) -> async_of<void> {
+                          client_disconnected_.store(true);
+                          co_return;
+                        },
+                        nullptr));
 
+  while (!_service->get_running()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
   ASSERT_TRUE(
       _wait_for_flag([&]() { return client_connected_.load(); }, 2000) &&
       "client_connected timed out");
